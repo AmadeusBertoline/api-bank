@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
+import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.repository.ContaRepository;
 
@@ -38,7 +39,40 @@ public class ContaService {
 
     }
 
-    //Conversão de entidade para DTO, sempre fazer isso para não expor a entidade diretamente
+    public ContaResponseDTO buscarPorId(Long id){
+
+        Conta conta = contaRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " +id));
+
+        return toDTO(conta);
+
+    }
+
+    public ContaResponseDTO atualizar(Long id, ContaRequestDTO dto){
+
+        Conta conta = contaRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " +id));
+
+        conta.setTitular(dto.getTitular());
+        conta.setNumeroConta(dto.getNumeroConta());
+        conta.setSaldo(dto.getSaldo());
+        conta.setTipoConta(dto.getTipoConta());
+
+        Conta atualizada = contaRepository.save(conta);
+
+        return toDTO(atualizada);
+
+    }
+
+    public void deletar(Long id){
+
+        Conta conta = contaRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " +id));
+
+        contaRepository.delete(conta);
+
+    }
+
     private ContaResponseDTO toDTO(Conta conta){
         ContaResponseDTO dto = new ContaResponseDTO();
         dto.setId(conta.getId());
