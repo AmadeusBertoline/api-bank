@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.service.ContaService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/contas")
@@ -24,7 +25,7 @@ public class ContaController {
     private ContaService contaService;
 
     @PostMapping
-    public ResponseEntity<ContaResponseDTO> criar(@RequestBody ContaRequestDTO dto) {
+    public ResponseEntity<ContaResponseDTO> criar(@RequestBody @Valid ContaRequestDTO dto) {
         ContaResponseDTO resposta = contaService.criar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
@@ -43,7 +44,7 @@ public class ContaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody ContaRequestDTO dto){
+    public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid ContaRequestDTO dto){
 
         ContaResponseDTO conta = contaService.atualizar(id, dto);
         return ResponseEntity.ok(conta);
