@@ -123,7 +123,6 @@ public class TransacaoService {
         .stream()
         .map(this::toDTO)
         .collect(Collectors.toList());
-
     }
 
     private TransacaoResponseDTO toDTO(Transacao transacao){
