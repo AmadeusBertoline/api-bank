@@ -1,8 +1,6 @@
 package api.dto;
 
 import java.math.BigDecimal;
-
-import api.model.Conta;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -11,10 +9,10 @@ import lombok.Data;
 @Data
 public class TransacaoRequestDTO {
     
-    @NotBlank(message = "O id da conta é obrigatório")
+    @NotNull(message = "O id da conta é obrigatório")
     private Long contaId;
 
-    private Conta contaDestino;
+    private Long contaDestinoId;
 
     @NotBlank(message = "O tipo da transação é obrigatório")
     private String tipo;

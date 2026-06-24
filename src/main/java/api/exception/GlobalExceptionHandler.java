@@ -65,4 +65,17 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<Map<String, Object>> handleRegraNegocio(RegraNegocioException ex){
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timestamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.BAD_REQUEST.value());
+        corpo.put("erro", "Uma regra de negócio foi ferida.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);
+
+    }
+
 }
