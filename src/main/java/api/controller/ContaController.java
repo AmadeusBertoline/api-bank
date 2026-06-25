@@ -16,26 +16,32 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.service.ContaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/contas")
+@Tag(name = "Contas", description = "Gerenciamento de contas bancárias")
 public class ContaController {
     @Autowired
     private ContaService contaService;
 
+    @Operation(summary = "criar conta", description = "Abertura de uma nova conta")
     @PostMapping
     public ResponseEntity<ContaResponseDTO> criar(@RequestBody @Valid ContaRequestDTO dto) {
         ContaResponseDTO resposta = contaService.criar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
+    @Operation(summary = "listar todas as contas", description = "Lista todas as contas criadas")
     @GetMapping
     public ResponseEntity<List<ContaResponseDTO>> listarTodas() {
         List<ContaResponseDTO> contas = contaService.listarTodas();
         return ResponseEntity.ok(contas);
     }
 
+    @Operation(summary = "buscar conta por id")
     @GetMapping("/{id}")
     public ResponseEntity<ContaResponseDTO> buscaPorId(@PathVariable Long id){
 
@@ -43,6 +49,7 @@ public class ContaController {
         return ResponseEntity.ok(conta);
     }
 
+    @Operation(summary = "atualizar conta")
     @PutMapping("/{id}")
     public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid ContaRequestDTO dto){
 
@@ -51,6 +58,7 @@ public class ContaController {
 
     }
 
+    @Operation(summary = "deletar conta")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id){
 
