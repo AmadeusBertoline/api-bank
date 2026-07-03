@@ -18,7 +18,7 @@ public class SwaggerConfig {
                     .version("1.0.0")
                     .description("API REST para gerenciamento de contas bancárias e transações financeiras")
                         .contact(new Contact()
-                                .name("Amadeus Bertoline da Silva")
+                                .name("Amadeus Silva")
                                 .email("amadeusbertoline123@gmail.com"))
             );
     }
