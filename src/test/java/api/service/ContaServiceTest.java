@@ -1,0 +1,123 @@
+package api.service;
+
+import api.dto.ContaRequestDTO;
+import api.dto.ContaResponseDTO;
+import api.exception.ResourceNotFoundException;
+import api.model.Conta;
+import api.repository.ContaRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class ContaServiceTest {
+
+    @Mock
+    private ContaRepository contaRepository;
+
+    @InjectMocks
+    private ContaService contaService;
+
+    private Conta contaExistente;
+    private ContaRequestDTO requestDTO;
+
+    @BeforeEach
+    void setup() {
+        contaExistente = new Conta();
+        contaExistente.setId(1L);
+        contaExistente.setTitular("João Silva");
+        contaExistente.setNumeroConta("001-1");
+        contaExistente.setSaldo(new BigDecimal("1000.00"));
+        contaExistente.setTipoConta("CORRENTE");
+        contaExistente.setAtiva(true);
+        contaExistente.setDataCriacao(LocalDateTime.now());
+
+        requestDTO = new ContaRequestDTO();
+        requestDTO.setTitular("João Silva");
+        requestDTO.setNumeroConta("001-1");
+        requestDTO.setSaldo(new BigDecimal("1000.00"));
+        requestDTO.setTipoConta("CORRENTE");
+    }
+
+    @Test
+    void deveCriarContaComSucesso() {
+
+        // ARRANGE
+        when(contaRepository.save(any(Conta.class))).thenReturn(contaExistente);
+
+        // ACT
+        ContaResponseDTO resultado = contaService.criar(requestDTO);
+
+        // ASSERT
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getTitular()).isEqualTo("João Silva");
+        assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
+        verify(contaRepository, times(1)).save(any(Conta.class));
+    }
+
+    @Test
+    void deveBuscarContaPorIdComSucesso() {
+
+        // ARRANGE
+        when(contaRepository.findById(1L)).thenReturn(Optional.of(contaExistente));
+
+        // ACT
+        ContaResponseDTO resultado = contaService.buscarPorId(1L);
+
+        // ASSERT
+        assertThat(resultado.getId()).isEqualTo(1L);
+        assertThat(resultado.getTitular()).isEqualTo("João Silva");
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoContaNaoEncontrada() {
+
+        // ARRANGE
+        when(contaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> contaService.buscarPorId(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("99");
+    }
+
+    @Test
+    void deveListarTodasAsContas() {
+
+        // ARRANGE
+        when(contaRepository.findAll()).thenReturn(List.of(contaExistente));
+
+        // ACT
+        List<ContaResponseDTO> resultado = contaService.listarTodas();
+
+        // ASSERT
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getTitular()).isEqualTo("João Silva");
+    }
+
+    @Test
+    void deveLancarExcecaoAoDeletarContaInexistente() {
+
+        // ARRANGE
+        when(contaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> contaService.deletar(99L))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(contaRepository, never()).delete(any());
+        
+    }
+}
