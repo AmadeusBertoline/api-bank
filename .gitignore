@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+
 #variáveis de ambiente
 .env
 application-local.properties
