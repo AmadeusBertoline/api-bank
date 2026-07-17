@@ -80,6 +80,8 @@ public class ContaService {
         dto.setNumeroConta(conta.getNumeroConta());
         dto.setSaldo(conta.getSaldo());
         dto.setTipoConta(conta.getTipoConta());
+        dto.setAtiva(conta.getAtiva());
+        dto.setDataCriacao(conta.getDataCriacao());
         return dto;
     }
 }
