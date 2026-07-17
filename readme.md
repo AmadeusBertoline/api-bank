@@ -136,4 +136,4 @@ No Swagger UI, clique em **Authorize** e cole o token.
 ```
 
 Cobertura de testes unitários no `ContaService` e `TransacaoService`, incluindo
-cenários de sucesso, erro de validação e violação de regras de negócio.
+cenários de sucesso, erro de validação e violação das regras de negócio.
