@@ -79,7 +79,8 @@ public class ContaService {
     private ContaResponseDTO toDTO(Conta conta){
         ContaResponseDTO dto = new ContaResponseDTO();
         dto.setId(conta.getId());
-        dto.setUsuario(conta.getUsuario());
+        dto.setTitular(conta.getUsuario().getNome());
+        dto.setEmail(conta.getUsuario().getEmail());
         dto.setNumeroConta(conta.getNumeroConta());
         dto.setSaldo(conta.getSaldo());
         dto.setTipoConta(conta.getTipoConta());
