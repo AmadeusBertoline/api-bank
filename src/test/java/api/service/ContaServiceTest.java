@@ -4,6 +4,7 @@ import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
+import api.model.Usuario;
 import api.repository.ContaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,12 +33,21 @@ class ContaServiceTest {
 
     private Conta contaExistente;
     private ContaRequestDTO requestDTO;
+    private Usuario usuarioExistente;
 
     @BeforeEach
     void setup() {
+
+        usuarioExistente = new Usuario();
+        usuarioExistente.setId(1L);
+        usuarioExistente.setNome("Amadeus Bertoline");
+        usuarioExistente.setEmail("amadeus@email.com");
+        usuarioExistente.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");                                                          
+        usuarioExistente.setRole("ROLE_CLIENTE");
+
         contaExistente = new Conta();
         contaExistente.setId(1L);
-        contaExistente.setTitular("João Silva");
+        contaExistente.setUsuario(usuarioExistente);
         contaExistente.setNumeroConta("001-1");
         contaExistente.setSaldo(new BigDecimal("1000.00"));
         contaExistente.setTipoConta("CORRENTE");
@@ -45,7 +55,6 @@ class ContaServiceTest {
         contaExistente.setDataCriacao(LocalDateTime.now());
 
         requestDTO = new ContaRequestDTO();
-        requestDTO.setTitular("João Silva");
         requestDTO.setNumeroConta("001-1");
         requestDTO.setSaldo(new BigDecimal("1000.00"));
         requestDTO.setTipoConta("CORRENTE");
@@ -62,7 +71,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getTitular()).isEqualTo("João Silva");
+        assertThat(resultado.getUsuario()).isEqualTo(usuarioExistente);
         assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
     }
@@ -78,7 +87,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.getTitular()).isEqualTo("João Silva");
+        assertThat(resultado.getUsuario()).isEqualTo(usuarioExistente);
     }
 
     @Test
@@ -104,7 +113,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getTitular()).isEqualTo("João Silva");
+        assertThat(resultado.get(0).getUsuario()).isEqualTo(usuarioExistente);
     }
 
     @Test
@@ -118,6 +127,6 @@ class ContaServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
 
         verify(contaRepository, never()).delete(any());
-        
+
     }
 }

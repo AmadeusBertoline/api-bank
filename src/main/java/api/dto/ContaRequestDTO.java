@@ -10,9 +10,6 @@ import jakarta.validation.constraints.Size;
 @Data
 public class ContaRequestDTO {
     
-    @NotBlank(message = "O nome do titular é obrigatório")
-    private Long idTitular;
-
     @NotBlank(message = "O número da conta é obrigatório")
     @Size(max = 20, message = "O número da conta pode ter no máximo 20 caracteres")
     private String numeroConta;
