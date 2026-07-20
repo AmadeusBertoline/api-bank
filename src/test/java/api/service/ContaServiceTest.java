@@ -71,7 +71,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getUsuario()).isEqualTo(usuarioExistente);
+        assertThat(resultado.getTitular()).isEqualTo("Amadeus Bertoline");
         assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
     }
@@ -87,7 +87,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado.getId()).isEqualTo(1L);
-        assertThat(resultado.getUsuario()).isEqualTo(usuarioExistente);
+        assertThat(resultado.getTitular()).isEqualTo("Amadeus Bertoline");
     }
 
     @Test
@@ -113,7 +113,7 @@ class ContaServiceTest {
 
         // ASSERT
         assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getUsuario()).isEqualTo(usuarioExistente);
+        assertThat(resultado.get(0).getTitular()).isEqualTo("Amadeus Bertoline");
     }
 
     @Test

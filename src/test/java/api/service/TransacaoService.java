@@ -3,6 +3,7 @@ package api.service;
 import api.dto.TransacaoRequestDTO;
 import api.exception.RegraNegocioException;
 import api.model.Conta;
+import api.model.Usuario;
 import api.repository.ContaRepository;
 import api.repository.TransacaoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,12 +34,21 @@ class TransacaoServiceTest {
 
     private Conta conta;
     private TransacaoRequestDTO dto;
+    private Usuario usuarioExistente;
 
     @BeforeEach
     void setup() {
+
+        usuarioExistente = new Usuario();
+        usuarioExistente.setId(1L);
+        usuarioExistente.setNome("Amadeus Bertoline");
+        usuarioExistente.setEmail("amadeus@email.com");
+        usuarioExistente.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");                                                          
+        usuarioExistente.setRole("ROLE_CLIENTE");
+
         conta = new Conta();
         conta.setId(1L);
-        conta.setTitular("João Silva");
+        conta.setUsuario(usuarioExistente);
         conta.setSaldo(new BigDecimal("1000.00"));
         conta.setAtiva(true);
 
