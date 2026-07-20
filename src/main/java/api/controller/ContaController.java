@@ -41,11 +41,11 @@ public class ContaController {
         return ResponseEntity.ok(contas);
     }
 
-    @Operation(summary = "buscar conta por id")
-    @GetMapping("/{id}")
-    public ResponseEntity<ContaResponseDTO> buscaPorId(@PathVariable Long id){
+    @Operation(summary = "Exibir dados da minha conta")
+    @GetMapping("/me")
+    public ResponseEntity<ContaResponseDTO> meusDados(){
 
-        ContaResponseDTO conta = contaService.buscarPorId(id);
+        ContaResponseDTO conta = contaService.meusDados();
         return ResponseEntity.ok(conta);
     }
 
