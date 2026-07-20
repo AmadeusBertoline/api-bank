@@ -2,6 +2,7 @@ package api.controller;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import api.dto.AtualizarContaRequestDTO;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.service.ContaService;
@@ -51,7 +52,7 @@ public class ContaController {
 
     @Operation(summary = "atualizar conta")
     @PutMapping("/{id}")
-    public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid ContaRequestDTO dto){
+    public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid AtualizarContaRequestDTO dto){
 
         ContaResponseDTO conta = contaService.atualizar(id, dto);
         return ResponseEntity.ok(conta);

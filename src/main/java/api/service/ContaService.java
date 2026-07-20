@@ -4,13 +4,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import api.dto.AtualizarContaRequestDTO;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
+import api.model.Usuario;
 import api.repository.ContaRepository;
 
 @Service
@@ -19,9 +20,15 @@ public class ContaService {
     @Autowired
     private ContaRepository contaRepository;
 
+    @Autowired 
+    private AuthService authService;
+
     public ContaResponseDTO criar(ContaRequestDTO dto){
+
+        Usuario usuario = authService.buscarUsuarioLogado();
+
         Conta conta = new Conta();
-        conta.setTitular(dto.getTitular());
+        conta.setUsuario(usuario);
         conta.setNumeroConta(dto.getNumeroConta());
         conta.setSaldo(dto.getSaldo());
         conta.setTipoConta(dto.getTipoConta());
@@ -49,14 +56,11 @@ public class ContaService {
 
     }
 
-    public ContaResponseDTO atualizar(Long id, ContaRequestDTO dto){
+    public ContaResponseDTO atualizar(Long id, AtualizarContaRequestDTO dto){
 
         Conta conta = contaRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " +id));
 
-        conta.setTitular(dto.getTitular());
-        conta.setNumeroConta(dto.getNumeroConta());
-        conta.setSaldo(dto.getSaldo());
         conta.setTipoConta(dto.getTipoConta());
 
         Conta atualizada = contaRepository.save(conta);
@@ -77,7 +81,7 @@ public class ContaService {
     private ContaResponseDTO toDTO(Conta conta){
         ContaResponseDTO dto = new ContaResponseDTO();
         dto.setId(conta.getId());
-        dto.setTitular(conta.getTitular());
+        dto.setUsuario(conta.getUsuario());
         dto.setNumeroConta(conta.getNumeroConta());
         dto.setSaldo(conta.getSaldo());
         dto.setTipoConta(conta.getTipoConta());

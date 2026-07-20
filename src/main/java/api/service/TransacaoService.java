@@ -131,14 +131,14 @@ public class TransacaoService {
         dto.setId(transacao.getId());
         dto.setTipo(transacao.getTipo());
         dto.setContaId(transacao.getConta().getId());
-        dto.setTitularConta(transacao.getConta().getTitular());
+        dto.setTitularConta(transacao.getConta().getUsuario().getNome());
         dto.setDescricao(transacao.getDescricao());
         dto.setValor(transacao.getValor());
         dto.setDataHora(transacao.getDataHora());
         
         if (transacao.getContaDestino() != null) {
             dto.setContaDestinoId(transacao.getContaDestino().getId());
-            dto.setTitularContaDestino(transacao.getContaDestino().getTitular());
+            dto.setTitularContaDestino(transacao.getContaDestino().getUsuario().getNome());
         }
 
         return dto;

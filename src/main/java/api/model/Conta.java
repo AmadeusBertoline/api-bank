@@ -14,8 +14,9 @@ public class Conta {
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Long id;
 
+        @ManyToOne
         @Column(nullable = false)
-        private String titular;
+        private Usuario usuario;
 
         @Column(nullable = false, unique = true, length = 20)
         private String numeroConta;
