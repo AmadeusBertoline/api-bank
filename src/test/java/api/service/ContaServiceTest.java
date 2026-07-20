@@ -28,6 +28,8 @@ class ContaServiceTest {
     @Mock
     private ContaRepository contaRepository;
 
+    @Mock private AuthService authService;
+
     @InjectMocks
     private ContaService contaService;
 
@@ -65,6 +67,7 @@ class ContaServiceTest {
 
         // ARRANGE
         when(contaRepository.save(any(Conta.class))).thenReturn(contaExistente);
+        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
 
         // ACT
         ContaResponseDTO resultado = contaService.criar(requestDTO);
@@ -74,6 +77,8 @@ class ContaServiceTest {
         assertThat(resultado.getTitular()).isEqualTo("Amadeus Bertoline");
         assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
+
+        verify(authService, times(1)).buscarUsuarioLogado();
     }
 
     @Test
