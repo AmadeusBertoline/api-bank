@@ -15,7 +15,7 @@ public class Conta {
         private Long id;
 
         @ManyToOne
-        @Column(nullable = false)
+        @JoinColumn(name = "usuario_id", nullable = false)
         private Usuario usuario;
 
         @Column(nullable = false, unique = true, length = 20)
