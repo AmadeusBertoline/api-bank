@@ -55,10 +55,12 @@ public class ContaService {
 
     }
 
-    public ContaResponseDTO atualizar(Long id, AtualizarContaRequestDTO dto) {
+    public ContaResponseDTO atualizar(AtualizarContaRequestDTO dto) {
 
-        Conta conta = contaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + id));
+        Usuario usuario = authService.buscarUsuarioLogado();
+
+        Conta conta = contaRepository.findById(usuario.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));
 
         conta.setTipoConta(dto.getTipoConta());
 

@@ -50,10 +50,10 @@ public class ContaController {
     }
 
     @Operation(summary = "atualizar conta")
-    @PutMapping("/{id}")
-    public ResponseEntity<ContaResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid AtualizarContaRequestDTO dto){
+    @PutMapping("/me")
+    public ResponseEntity<ContaResponseDTO> atualizar(@RequestBody @Valid AtualizarContaRequestDTO dto){
 
-        ContaResponseDTO conta = contaService.atualizar(id, dto);
+        ContaResponseDTO conta = contaService.atualizar(dto);
         return ResponseEntity.ok(conta);
 
     }
