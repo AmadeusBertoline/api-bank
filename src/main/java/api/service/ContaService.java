@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import api.dto.AtualizarContaRequestDTO;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
-import api.exception.AcessoNegadoException;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Usuario;
@@ -40,12 +39,6 @@ public class ContaService {
     }
 
     public List<ContaResponseDTO> listarTodas() {
-
-        Usuario usuario = authService.buscarUsuarioLogado();
-
-        if(!"ROLE_ADMIN".equals(usuario.getRole())){
-            throw new AcessoNegadoException("Acesso negado. Somente admnistradores podem visualizar todas as contas");
-        }
 
         return contaRepository.findAll()
                 .stream()

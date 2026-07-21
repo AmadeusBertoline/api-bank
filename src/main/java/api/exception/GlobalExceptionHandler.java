@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -75,6 +77,32 @@ public class GlobalExceptionHandler {
         corpo.put("mensagem", ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(corpo);
+
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex){
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timeStamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.FORBIDDEN.value());
+        corpo.put("erro", "Acesso negado. Você não tem permissão para acessar esta rota.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(corpo);
+
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(AuthenticationException ex){
+
+        Map<String, Object> corpo = new HashMap<>();
+        corpo.put("timeStamp", LocalDateTime.now());
+        corpo.put("status", HttpStatus.UNAUTHORIZED.value());
+        corpo.put("erro", "Não autorizado. É necessário estar autenticado para usar esta rota.");
+        corpo.put("mensagem", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(corpo);
 
     }
 

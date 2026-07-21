@@ -1,5 +1,7 @@
 package api.config;
 
+import api.exception.CustomAccessDeniedHandler;
+import api.exception.CustomAuthenticationEntryPoint;
 import api.security.JwtAuthFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,7 +31,9 @@ public class SecurityConfig {
     private JwtAuthFilter jwtAuthFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint)
+            throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
@@ -40,6 +44,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/contas/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/contas").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                        .authenticationEntryPoint(customAuthenticationEntryPoint))
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
