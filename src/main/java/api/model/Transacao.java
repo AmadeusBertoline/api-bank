@@ -2,6 +2,8 @@ package api.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import api.enums.TipoTransacao;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +33,7 @@ public class Transacao {
     private Conta contaDestino;
 
     @Column(nullable = false)
-    private String tipo;
+    private TipoTransacao tipo;
 
     @Column(nullable = false)
     private BigDecimal valor;

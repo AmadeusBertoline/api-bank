@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import api.dto.TransacaoRequestDTO;
 import api.dto.TransacaoResponseDTO;
+import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
@@ -33,7 +34,7 @@ public class TransacaoService {
             throw new RegraNegocioException("A conta precisa estar ativa para realizar transações");
         }
 
-        return switch (dto.getTipo().toUpperCase()) {
+        return switch (dto.getTipo()) {
             case "DEPOSITO" -> depositar(conta, dto);
             case "SAQUE" -> sacar(conta, dto);
             case "TRANSFERENCIA" -> transferir(conta, dto);
@@ -50,7 +51,7 @@ public class TransacaoService {
 
         Transacao transacao = new Transacao();
         transacao.setConta(conta);
-        transacao.setTipo("DEPOSITO");
+        transacao.setTipo(TipoTransacao.DEPOSITO);
         transacao.setValor(dto.getValor());
         transacao.setDescricao(dto.getDescricao());
 
@@ -69,7 +70,7 @@ public class TransacaoService {
 
         Transacao transacao = new Transacao();
         transacao.setConta(conta);
-        transacao.setTipo("SAQUE");
+        transacao.setTipo(TipoTransacao.SAQUE);
         transacao.setValor(dto.getValor());
         transacao.setDescricao(dto.getDescricao());
 
@@ -108,7 +109,7 @@ public class TransacaoService {
 
         transacao.setConta(conta);
         transacao.setContaDestino(contaDestino);
-        transacao.setTipo("TRANSFERENCIA");
+        transacao.setTipo(TipoTransacao.TRANSFERENCIA);
         transacao.setValor(dto.getValor());
         transacao.setDescricao(dto.getDescricao());
 
