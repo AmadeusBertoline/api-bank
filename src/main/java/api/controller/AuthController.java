@@ -1,8 +1,10 @@
 package api.controller;
 
+import api.dto.AdminRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
-import api.dto.RegistroRequestDTO;
+import api.dto.UsuarioRequestDTO;
+import api.enums.TipoRole;
 import api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,10 +24,17 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Operation(summary = "Registrar novo usuário")
+    @Autowired
+
+    @Operation(summary = "Registrar novo usuário", description = "cria um novo usuário")
     @PostMapping("/registrar")
-    public ResponseEntity<String> registrar(@RequestBody @Valid RegistroRequestDTO dto) {
-        return ResponseEntity.ok(authService.registrar(dto));
+    public ResponseEntity<String> registrar(@RequestBody @Valid UsuarioRequestDTO dto) {
+        return ResponseEntity.ok(authService.registrarUsuario(dto));
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<String> registrarAdmin(@Valid @RequestBody AdminRequestDTO dto) {
+        return ResponseEntity.ok(authService.registrarAdmin(dto));
     }
 
     @Operation(summary = "Login — retorna JWT")

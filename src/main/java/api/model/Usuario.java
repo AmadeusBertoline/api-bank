@@ -1,5 +1,8 @@
 package api.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import api.enums.TipoRole;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,8 +22,32 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String senha; 
+    private String senha;
+
+    @Column(nullable = false, unique = true, length = 11)
+    private String cpf;
 
     @Column(nullable = false)
-    private String role; 
+    private LocalDate dataNascimento;
+
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
+    private Endereco endereco;
+
+    @Column(nullable = false)
+    private TipoRole role;
+
+    @Column(length = 30)
+    private String cargo;
+
+    @Column(length = 30)
+    private String departamento;
+
+    @Column(nullable = false)
+    private LocalDateTime dataCriacao;
+
+    @PrePersist
+    public void prePersist() {
+        this.role = TipoRole.ROLE_USUARIO;
+        this.dataCriacao = LocalDateTime.now();
+    }
 }

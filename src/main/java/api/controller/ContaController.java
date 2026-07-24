@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dto.AtualizarContaRequestDTO;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
+import api.enums.TipoConta;
 import api.service.ContaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,17 +42,25 @@ public class ContaController {
         return ResponseEntity.ok(contas);
     }
 
-    @Operation(summary = "Exibir dados da minha conta")
-    @GetMapping("/me")
-    public ResponseEntity<ContaResponseDTO> meusDados(){
+    @Operation(summary = "Exibir dados da minha conta corrente")
+    @GetMapping("/corrente")
+    public ResponseEntity<ContaResponseDTO> exibirContaCorrente() {
 
-        ContaResponseDTO conta = contaService.meusDados();
+        ContaResponseDTO conta = contaService.meusDados(TipoConta.CORRENTE);
+        return ResponseEntity.ok(conta);
+    }
+
+    @Operation(summary = "Exibir dados da minha conta corrente")
+    @GetMapping("/poupanca")
+    public ResponseEntity<ContaResponseDTO> exibirContaPoupanca() {
+
+        ContaResponseDTO conta = contaService.meusDados(TipoConta.CORRENTE);
         return ResponseEntity.ok(conta);
     }
 
     @Operation(summary = "atualizar conta")
     @PutMapping("/me")
-    public ResponseEntity<ContaResponseDTO> atualizar(@RequestBody @Valid AtualizarContaRequestDTO dto){
+    public ResponseEntity<ContaResponseDTO> atualizar(@RequestBody @Valid AtualizarContaRequestDTO dto) {
 
         ContaResponseDTO conta = contaService.atualizar(dto);
         return ResponseEntity.ok(conta);
@@ -60,7 +69,7 @@ public class ContaController {
 
     @Operation(summary = "deletar conta")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id){
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
 
         contaService.deletar(id);
         return ResponseEntity.noContent().build();

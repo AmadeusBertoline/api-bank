@@ -1,5 +1,6 @@
 package api.dto;
 
+import api.enums.TipoRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,5 +10,5 @@ public class LoginResponseDTO {
     private String token;
     private String tipo;   
     private String nome;
-    private String role;
+    private TipoRole role;
 }

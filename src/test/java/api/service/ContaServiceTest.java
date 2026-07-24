@@ -2,6 +2,8 @@ package api.service;
 
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
+import api.enums.TipoConta;
+import api.enums.TipoRole;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Usuario;
@@ -45,21 +47,19 @@ class ContaServiceTest {
         usuarioExistente.setNome("Amadeus Bertoline");
         usuarioExistente.setEmail("amadeus@email.com");
         usuarioExistente.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");                                                          
-        usuarioExistente.setRole("ROLE_CLIENTE");
+        usuarioExistente.setRole(TipoRole.ROLE_USUARIO);
 
         contaExistente = new Conta();
         contaExistente.setId(1L);
         contaExistente.setUsuario(usuarioExistente);
         contaExistente.setNumeroConta("001-1");
-        contaExistente.setSaldo(new BigDecimal("1000.00"));
-        contaExistente.setTipoConta("CORRENTE");
+        contaExistente.setSaldo(new BigDecimal("0"));
+        contaExistente.setTipoConta(TipoConta.CORRENTE);
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
         requestDTO = new ContaRequestDTO();
-        requestDTO.setNumeroConta("001-1");
-        requestDTO.setSaldo(new BigDecimal("1000.00"));
-        requestDTO.setTipoConta("CORRENTE");
+        requestDTO.setTipoConta(TipoConta.CORRENTE);
     }
 
     @Test

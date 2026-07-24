@@ -5,6 +5,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import api.enums.TipoConta;
+
 @Data
 @Entity
 @Table(name = "contas")
@@ -24,8 +26,9 @@ public class Conta {
         @Column(nullable = false)
         private BigDecimal saldo;
 
+        @Enumerated(EnumType.STRING)
         @Column(nullable = false)
-        private String tipoConta;
+        private TipoConta tipoConta;
 
         @Column(nullable = false)
         private Boolean ativa;

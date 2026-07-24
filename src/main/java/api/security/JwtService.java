@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import api.enums.TipoRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -20,7 +21,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    public String gerarToken(String email, String role){
+    public String gerarToken(String email, TipoRole role){
 
         return Jwts.builder()
                 .subject(email)
