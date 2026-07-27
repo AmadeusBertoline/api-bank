@@ -92,7 +92,7 @@ public class TransacaoService {
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));
 
-        return transacaoRepository.findByContaOrigemIdOrderByDataHoraDesc(conta.getId())
+        return transacaoRepository.encontrarTransacoes(conta.getId())
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());

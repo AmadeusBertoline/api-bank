@@ -9,6 +9,6 @@ import org.springframework.data.repository.query.Param;
 import api.model.Transacao;
 
 public interface TransacaoRepository extends JpaRepository<Transacao, Long> {
-    @Query("SELECT t FROM Transacao t WHERE t.contaOrigem.id = :contaId ORDER BY t.dataHora DESC")
-    List<Transacao> findByContaOrigemIdOrderByDataHoraDesc(@Param("contaId") Long contaId);
+    @Query("SELECT t FROM Transacao t WHERE t.contaOrigem.id = :contaId OR t.contaDestino.id = :contaId ORDER BY t.dataHora DESC")
+    List<Transacao> encontrarTransacoes(@Param("contaId") Long contaId);
 }

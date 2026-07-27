@@ -29,9 +29,6 @@ public class ChavePixService {
     @Transactional
     public ChavePixResponseDTO cadastrar(ChavePixRequestDTO dto) {
 
-        System.out.println(">>> CHAVE RECEBIDA: " + dto.getChave());
-    System.out.println(">>> TIPO RECEBIDO: " + dto.getTipo());
-
         Usuario usuario = authService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
@@ -50,7 +47,12 @@ public class ChavePixService {
 
     public List<ChavePixResponseDTO> listarChavesPix(){
 
-        return chavePixRepository.findAll()
+        Usuario usuario = authService.buscarUsuarioLogado();
+
+        Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
+        .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado de email "+usuario.getEmail()));
+
+        return chavePixRepository.findAllByContaId(conta.getId())
         .stream()
         .map(this::toDTO)
         .collect(Collectors.toList());

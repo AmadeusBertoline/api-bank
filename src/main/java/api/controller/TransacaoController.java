@@ -35,7 +35,7 @@ public class TransacaoController {
     }
 
     @Operation(summary = "extrato da conta", description = "Lista todas as transações da conta, da mais recente para a mais antiga")
-    @GetMapping("/me")
+    @GetMapping("/extrato")
     public ResponseEntity<List<TransacaoResponseDTO>> listarPorConta() {
 
         List<TransacaoResponseDTO> transacoes = new ArrayList<>();
