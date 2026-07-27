@@ -1,26 +1,25 @@
 package api.dto;
 
 import java.math.BigDecimal;
-import jakarta.validation.constraints.NotBlank;
+import api.enums.TipoTransacao;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
 public class TransacaoRequestDTO {
-    
-    @NotNull(message = "O id da conta é obrigatório")
-    private Long contaId;
 
-    private Long contaDestinoId;
+    @NotNull(message = "O tipo da transação é obrigatório (DEPOSITO, SAQUE, TRANSFERENCIA)")
+    private TipoTransacao tipo;
 
-    @NotBlank(message = "O tipo da transação é obrigatório")
-    private String tipo;
+    private String numeroContaDestino;
 
-    @Positive(message = "O valor deve ser maior que zero")
-    @NotNull(message = "O valor é obrigatório")
+    @NotNull(message = "O valor da transação é obrigatório")
+    @Positive(message = "O valor da transação deve ser maior que zero")
     private BigDecimal valor;
 
+    @Size(max = 255, message = "A descrição deve ter no máximo 255 caracteres")
     private String descricao;
 
 }

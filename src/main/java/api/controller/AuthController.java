@@ -4,7 +4,6 @@ import api.dto.AdminRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
-import api.enums.TipoRole;
 import api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,8 +22,6 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
-
-    @Autowired
 
     @Operation(summary = "Registrar novo usuário", description = "cria um novo usuário")
     @PostMapping("/registrar")

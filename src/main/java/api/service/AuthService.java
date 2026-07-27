@@ -11,6 +11,8 @@ import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
 import api.security.JwtService;
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +30,10 @@ public class AuthService {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired ContaService contaService;
+
+
+    @Transactional
     public String registrarUsuario(UsuarioRequestDTO dto) {
 
         if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
@@ -61,7 +67,11 @@ public class AuthService {
         usuario.setDataNascimento(dto.getDataNascimento());
         usuario.setEndereco(endereco);
 
+        endereco.setUsuario(usuario);
+
         usuarioRepository.save(usuario);
+
+        contaService.criar(usuario);
 
         return "Usuário registrado com sucesso";
     }

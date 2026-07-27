@@ -8,14 +8,11 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import api.dto.AtualizarContaRequestDTO;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
-import api.enums.TipoConta;
 import api.service.ContaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,44 +25,21 @@ public class ContaController {
     @Autowired
     private ContaService contaService;
 
-    @Operation(summary = "criar conta", description = "Abertura de uma nova conta")
-    @PostMapping
-    public ResponseEntity<ContaResponseDTO> criar(@RequestBody @Valid ContaRequestDTO dto) {
-        ContaResponseDTO resposta = contaService.criar(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
-    }
-
     @Operation(summary = "listar todas as contas", description = "Lista todas as contas criadas")
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<ContaResponseDTO>> listarTodas() {
         List<ContaResponseDTO> contas = contaService.listarTodas();
         return ResponseEntity.ok(contas);
     }
 
     @Operation(summary = "Exibir dados da minha conta corrente")
-    @GetMapping("/corrente")
+    @GetMapping("/me")
     public ResponseEntity<ContaResponseDTO> exibirContaCorrente() {
 
-        ContaResponseDTO conta = contaService.meusDados(TipoConta.CORRENTE);
+        ContaResponseDTO conta = contaService.meusDados();
         return ResponseEntity.ok(conta);
     }
 
-    @Operation(summary = "Exibir dados da minha conta corrente")
-    @GetMapping("/poupanca")
-    public ResponseEntity<ContaResponseDTO> exibirContaPoupanca() {
-
-        ContaResponseDTO conta = contaService.meusDados(TipoConta.CORRENTE);
-        return ResponseEntity.ok(conta);
-    }
-
-    @Operation(summary = "atualizar conta")
-    @PutMapping("/me")
-    public ResponseEntity<ContaResponseDTO> atualizar(@RequestBody @Valid AtualizarContaRequestDTO dto) {
-
-        ContaResponseDTO conta = contaService.atualizar(dto);
-        return ResponseEntity.ok(conta);
-
-    }
 
     @Operation(summary = "deletar conta")
     @DeleteMapping("/{id}")

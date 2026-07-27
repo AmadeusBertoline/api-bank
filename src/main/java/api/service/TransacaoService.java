@@ -4,15 +4,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import api.dto.TransacaoRequestDTO;
+import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
+import api.model.Pix;
 import api.model.Transacao;
+import api.model.Usuario;
 import api.repository.ContaRepository;
+import api.repository.PixRepository;
 import api.repository.TransacaoRepository;
+import api.util.EndToEndIdUtil;
+import api.util.ValidadorChavePix;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -22,107 +27,72 @@ public class TransacaoService {
     private TransacaoRepository transacaoRepository;
 
     @Autowired
+    private PixRepository pixRepository;
+
+    @Autowired
     private ContaRepository contaRepository;
 
+    @Autowired
+    private AuthService authService;
+
     @Transactional
-    public TransacaoResponseDTO realizarTransacao(TransacaoRequestDTO dto) {
+    public TransacaoResponseDTO pix(PixRequestDTO dto) {
 
-        Conta conta = contaRepository.findById(dto.getContaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + dto.getContaId()));
+        Usuario usuario = authService.buscarUsuarioLogado();
 
-        if (!conta.getAtiva()) {
-            throw new RegraNegocioException("A conta precisa estar ativa para realizar transações");
-        }
+        Conta contaOrigem = contaRepository.findByUsuarioEmail(usuario.getEmail())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Conta origem não encontrada de id " + usuario.getId()));
 
-        return switch (dto.getTipo()) {
-            case "DEPOSITO" -> depositar(conta, dto);
-            case "SAQUE" -> sacar(conta, dto);
-            case "TRANSFERENCIA" -> transferir(conta, dto);
-            default ->
-                throw new RegraNegocioException("Tipo de transação é inválido, use: DEPOSITO, SAQUE OU TRANSFERÊNCIA");
-        };
+        Conta contaDestino = contaRepository.findByChavesPix(dto.getChavePix())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()));
 
-    }
-
-    private TransacaoResponseDTO depositar(Conta conta, TransacaoRequestDTO dto) {
-
-        conta.setSaldo(conta.getSaldo().add(dto.getValor()));
-        contaRepository.save(conta);
-
-        Transacao transacao = new Transacao();
-        transacao.setConta(conta);
-        transacao.setTipo(TipoTransacao.DEPOSITO);
-        transacao.setValor(dto.getValor());
-        transacao.setDescricao(dto.getDescricao());
-
-        return toDTO(transacaoRepository.save(transacao));
-
-    }
-
-    private TransacaoResponseDTO sacar(Conta conta, TransacaoRequestDTO dto) {
-
-        if (conta.getSaldo().compareTo(dto.getValor()) < 0) {
-            throw new RegraNegocioException("Saldo insuficiente. Saldo atual: " + conta.getSaldo());
-        }
-
-        conta.setSaldo(conta.getSaldo().subtract(dto.getValor()));
-        contaRepository.save(conta);
-
-        Transacao transacao = new Transacao();
-        transacao.setConta(conta);
-        transacao.setTipo(TipoTransacao.SAQUE);
-        transacao.setValor(dto.getValor());
-        transacao.setDescricao(dto.getDescricao());
-
-        return toDTO(transacaoRepository.save(transacao));
-
-    }
-
-    public TransacaoResponseDTO transferir(Conta conta, TransacaoRequestDTO dto) {
-
-        if (dto.getContaDestinoId() == null) {
-            throw new RegraNegocioException("A conta destino deve ser informada.");
-        }
-
-        if (conta.getId() == dto.getContaDestinoId()) {
+        if (contaOrigem.getId() == contaDestino.getId()) {
             throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
         }
-
-        Conta contaDestino = contaRepository.findById(dto.getContaDestinoId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conta destino não encontrada com id: " + dto.getContaDestinoId()));
 
         if (!contaDestino.getAtiva()) {
             throw new RegraNegocioException("Contra destino inativa não pode receber transferências.");
         }
 
-        if (conta.getSaldo().compareTo(dto.getValor()) < 0) {
-            throw new RegraNegocioException("Saldo insuficiente. Saldo Atual: " + conta.getSaldo());
+        if (contaOrigem.getSaldo().compareTo(dto.getValor()) < 0) {
+            throw new RegraNegocioException("Saldo insuficiente. Saldo Atual: " + contaOrigem.getSaldo());
         }
 
-        conta.setSaldo(conta.getSaldo().subtract(dto.getValor()));
-        contaRepository.save(conta);
+        Transacao transacao = new Transacao();
+        transacao.setTipo(TipoTransacao.PIX);
+        transacao.setValor(dto.getValor());
+        transacao.setDescricao(dto.getDescricao());
+        transacao.setContaOrigem(contaOrigem);
+        transacao.setContaDestino(contaDestino);
+
+        Pix pix = new Pix();
+        pix.setTransacao(transacao);
+        pix.setChavePix(dto.getChavePix());
+        pix.setTipoChave(ValidadorChavePix.identificarTipo(dto.getChavePix()));
+        pix.setEndToEndId(EndToEndIdUtil.gerar());
+
+        contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(dto.getValor()));
+        contaRepository.save(contaOrigem);
         contaDestino.setSaldo(contaDestino.getSaldo().add(dto.getValor()));
         contaRepository.save(contaDestino);
 
-        Transacao transacao = new Transacao();
+        transacaoRepository.save(transacao);
+        pixRepository.save(pix);
 
-        transacao.setConta(conta);
-        transacao.setContaDestino(contaDestino);
-        transacao.setTipo(TipoTransacao.TRANSFERENCIA);
-        transacao.setValor(dto.getValor());
-        transacao.setDescricao(dto.getDescricao());
-
-        return toDTO(transacaoRepository.save(transacao));
+        return toDTO(transacao);
 
     }
 
-    public List<TransacaoResponseDTO> listarPorConta(Long id) {
+    public List<TransacaoResponseDTO> listarPorConta() {
 
-        contaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + id));
+        Usuario usuario = authService.buscarUsuarioLogado();
 
-        return transacaoRepository.findByContaIdOrderByDataHoraDesc(id)
+        Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));
+
+        return transacaoRepository.findByContaOrigemIdOrderByDataHoraDesc(conta.getId())
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -131,17 +101,17 @@ public class TransacaoService {
     private TransacaoResponseDTO toDTO(Transacao transacao) {
 
         TransacaoResponseDTO dto = new TransacaoResponseDTO();
-        dto.setId(transacao.getId());
         dto.setTipo(transacao.getTipo());
-        dto.setContaId(transacao.getConta().getId());
-        dto.setTitularConta(transacao.getConta().getUsuario().getNome());
-        dto.setDescricao(transacao.getDescricao());
         dto.setValor(transacao.getValor());
+        dto.setDescricao(transacao.getDescricao());
         dto.setDataHora(transacao.getDataHora());
 
         if (transacao.getContaDestino() != null) {
-            dto.setContaDestinoId(transacao.getContaDestino().getId());
             dto.setTitularContaDestino(transacao.getContaDestino().getUsuario().getNome());
+        }
+
+        if (transacao.getContaOrigem() != null) {
+            dto.setTitularConta(transacao.getContaOrigem().getUsuario().getNome());
         }
 
         return dto;

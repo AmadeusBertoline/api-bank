@@ -33,6 +33,7 @@ public class Usuario {
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private Endereco endereco;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoRole role;
 

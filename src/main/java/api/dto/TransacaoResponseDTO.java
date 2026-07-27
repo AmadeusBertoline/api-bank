@@ -8,10 +8,7 @@ import lombok.Data;
 
 @Data
 public class TransacaoResponseDTO {
-    private Long id;
-    private Long contaId;
     private String titularConta;
-    private Long contaDestinoId;
     private String titularContaDestino;
     private TipoTransacao tipo;
     private BigDecimal valor;

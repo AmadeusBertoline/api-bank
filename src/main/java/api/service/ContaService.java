@@ -1,13 +1,10 @@
 package api.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import api.dto.AtualizarContaRequestDTO;
-import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
 import api.exception.RegraNegocioException;
@@ -15,6 +12,7 @@ import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Usuario;
 import api.repository.ContaRepository;
+import api.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -24,21 +22,19 @@ public class ContaService {
     private ContaRepository contaRepository;
 
     @Autowired
-    private AuthService authService;
+    UsuarioRepository usuarioRepository;
 
     @Transactional
-    public ContaResponseDTO criar(ContaRequestDTO dto) {
+    public ContaResponseDTO criar(Usuario usuario) {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
-
-        boolean possui = contaRepository.existsByUsuarioEmailAndTipoConta(usuario.getEmail(), dto.getTipoConta());
+        boolean possui = contaRepository.existsByUsuarioEmail(usuario.getEmail());
 
         if (possui) {
-            throw new RegraNegocioException("O usuário já possui uma conta do tipo " + dto.getTipoConta());
+            throw new RegraNegocioException("O usuário já possui uma conta");
         }
 
         Conta conta = new Conta();
-        conta.setTipoConta(dto.getTipoConta());
+        conta.setTipoConta(TipoConta.PAGAMENTO);
         conta.setUsuario(usuario);
         conta.setNumeroConta("PENDENTE");
 
@@ -68,21 +64,6 @@ public class ContaService {
 
     }
 
-    public ContaResponseDTO atualizar(AtualizarContaRequestDTO dto) {
-
-        Usuario usuario = authService.buscarUsuarioLogado();
-
-        Conta conta = contaRepository.findById(usuario.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));
-
-        conta.setTipoConta(dto.getTipoConta());
-
-        Conta atualizada = contaRepository.save(conta);
-
-        return toDTO(atualizada);
-
-    }
-
     public void deletar(Long id) {
 
         Conta conta = contaRepository.findById(id)
@@ -92,13 +73,13 @@ public class ContaService {
 
     }
 
-    public ContaResponseDTO meusDados(TipoConta tipoConta) {
+    public ContaResponseDTO meusDados() {
 
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
 
-        Conta conta = contaRepository.findByUsuarioEmailAndTipoConta(email, tipoConta)
+        Conta conta = contaRepository.findByUsuarioEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
         return toDTO(conta);

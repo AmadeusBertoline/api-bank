@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import api.enums.TipoConta;
 
@@ -12,37 +13,49 @@ import api.enums.TipoConta;
 @Table(name = "contas")
 public class Conta {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        @ManyToOne
-        @JoinColumn(name = "usuario_id", nullable = false)
-        private Usuario usuario;
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
-        @Column(nullable = false, unique = true, length = 20)
-        private String numeroConta;
+    @OneToMany(mappedBy = "conta")
+    private List<ChavePix> chavesPix;
 
-        @Column(nullable = false)
-        private BigDecimal saldo;
+    @Column(nullable = false, length = 4)
+    private String agencia = "0001";
 
-        @Enumerated(EnumType.STRING)
-        @Column(nullable = false)
-        private TipoConta tipoConta;
+    @Column(name = "numero_conta", nullable = false, unique = true, length = 20)
+    private String numeroConta;
 
-        @Column(nullable = false)
-        private Boolean ativa;
+    @Column(length = 2)
+    private String digito;
 
-        @Column(nullable = false)
-        private LocalDateTime dataCriacao;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal saldo;
 
-        @PrePersist
-        public void prePersist(){
-            this.dataCriacao = LocalDateTime.now();
-            this.ativa = true;
-            if(this.saldo == null){
-                this.saldo = BigDecimal.ZERO;
-            }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoConta tipoConta;
+
+    @Column(nullable = false)
+    private Boolean ativa;
+
+    @Column(nullable = false)
+    private LocalDateTime dataCriacao;
+
+    @PrePersist
+    public void prePersist() {
+        this.dataCriacao = LocalDateTime.now();
+        this.ativa = true;
+        if (this.saldo == null) {
+            this.saldo = BigDecimal.ZERO;
         }
+        if (this.agencia == null || this.agencia.isBlank()) {
+            this.agencia = "0001";
+        }
+    }
 
 }
