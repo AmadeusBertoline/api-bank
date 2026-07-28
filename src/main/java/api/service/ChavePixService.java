@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
+import api.enums.TipoChavePix;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.ChavePix;
@@ -35,8 +36,16 @@ public class ChavePixService {
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
+        
+
         ChavePix chavePix = new ChavePix();
-        chavePix.setChave(dto.getChave());
+
+        if(dto.getTipo().equals(TipoChavePix.CPF)){
+            chavePix.setChave(usuario.getCpf());
+        }else{
+            chavePix.setChave(dto.getChave());
+        }
+
         chavePix.setTipo(dto.getTipo());
         chavePix.setConta(conta);
 
