@@ -36,13 +36,11 @@ public class ChavePixService {
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
-        
-
         ChavePix chavePix = new ChavePix();
 
-        if(dto.getTipo().equals(TipoChavePix.CPF)){
+        if (dto.getTipo().equals(TipoChavePix.CPF)) {
             chavePix.setChave(usuario.getCpf());
-        }else{
+        } else {
             chavePix.setChave(dto.getChave());
         }
 
@@ -70,13 +68,18 @@ public class ChavePixService {
 
     }
 
+    @Transactional
     public ChavePixResponseDTO atualizar(Long id, ChavePixRequestDTO dto) {
+
+        if (dto.getTipo().equals(TipoChavePix.CPF)) {
+            throw new RegraNegocioException("Você não pode modificar seu cpf");
+        }
 
         Usuario usuario = authService.buscarUsuarioLogado();
 
         Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
 
-        if (!(usuario.getId() == usuarioDono)) {
+        if (!(usuario.getId().equals(usuarioDono))) {
             throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
         }
 
