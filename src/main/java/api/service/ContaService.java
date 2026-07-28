@@ -86,6 +86,32 @@ public class ContaService {
 
     }
 
+    public ContaResponseDTO desativar(Long id) {
+
+        Conta conta = contaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
+
+        conta.setAtiva(false);
+
+        Conta salva = contaRepository.save(conta);
+
+        return toDTO(salva);
+
+    }
+
+    public ContaResponseDTO ativar(Long id) {
+
+        Conta conta = contaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
+
+        conta.setAtiva(true);
+
+        Conta salva = contaRepository.save(conta);
+
+        return toDTO(salva);
+
+    }
+
     private int calcularDigito(Long id) {
         return (int) (id % 10);
     }

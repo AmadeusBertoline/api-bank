@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
+import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.ChavePix;
 import api.model.Conta;
@@ -45,17 +46,59 @@ public class ChavePixService {
 
     }
 
-    public List<ChavePixResponseDTO> listarChavesPix(){
+    public List<ChavePixResponseDTO> listarChavesPix() {
 
         Usuario usuario = authService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
-        .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado de email "+usuario.getEmail()));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("Usuário não encontrado de email " + usuario.getEmail()));
 
         return chavePixRepository.findAllByContaId(conta.getId())
-        .stream()
-        .map(this::toDTO)
-        .collect(Collectors.toList());
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+
+    }
+
+    public ChavePixResponseDTO atualizar(Long id, ChavePixRequestDTO dto) {
+
+        Usuario usuario = authService.buscarUsuarioLogado();
+
+        Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
+
+        if (!(usuario.getId() == usuarioDono)) {
+            throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
+        }
+
+        ChavePix chavePix = chavePixRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
+
+        chavePix.setChave(dto.getChave());
+        chavePix.setTipo(dto.getTipo());
+
+        ChavePix salva = chavePixRepository.save(chavePix);
+
+        return toDTO(salva);
+
+    }
+
+    public String deletar(Long id) {
+
+        Usuario usuario = authService.buscarUsuarioLogado();
+
+        Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
+
+        if (!(usuario.getId() == usuarioDono)) {
+            throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
+        }
+
+        chavePixRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
+
+        chavePixRepository.deleteById(id);
+
+        return "Chave deletada";
 
     }
 
