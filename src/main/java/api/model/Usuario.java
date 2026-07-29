@@ -37,12 +37,6 @@ public class Usuario {
     @Column(nullable = false)
     private TipoRole role;
 
-    @Column(length = 30)
-    private String cargo;
-
-    @Column(length = 30)
-    private String departamento;
-
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 

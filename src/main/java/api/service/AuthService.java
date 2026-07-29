@@ -96,7 +96,7 @@ public class AuthService {
                 .getName();
 
         return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Email do usuário incorreto"));
+                .orElseThrow(() -> new ResourceNotFoundException("Não há um usuário logado"));
 
     }
 

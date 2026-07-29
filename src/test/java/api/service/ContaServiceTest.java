@@ -54,12 +54,12 @@ class ContaServiceTest {
         contaExistente.setUsuario(usuarioExistente);
         contaExistente.setNumeroConta("001-1");
         contaExistente.setSaldo(new BigDecimal("0"));
-        contaExistente.setTipoConta(TipoConta.CORRENTE);
+        contaExistente.setTipoConta(TipoConta.PAGAMENTO);
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
         requestDTO = new ContaRequestDTO();
-        requestDTO.setTipoConta(TipoConta.CORRENTE);
+        requestDTO.setTipoConta(TipoConta.PAGAMENTO);
     }
 
     @Test
@@ -70,7 +70,7 @@ class ContaServiceTest {
         when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
 
         // ACT
-        ContaResponseDTO resultado = contaService.criar(requestDTO);
+        ContaResponseDTO resultado = contaService.criar(usuarioExistente);
 
         // ASSERT
         assertThat(resultado).isNotNull();

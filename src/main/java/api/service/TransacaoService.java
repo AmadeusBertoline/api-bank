@@ -48,24 +48,20 @@ public class TransacaoService {
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()));
 
-        if (contaOrigem.getId() == contaDestino.getId()) {
-            throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
+        if (!contaOrigem.getAtiva()) {
+            throw new RegraNegocioException("Sua conta está inativa, você não pode enviar ou receber transações");
         }
 
         if (!contaDestino.getAtiva()) {
-            throw new RegraNegocioException("Contra destino inativa não pode receber transferências.");
+            throw new RegraNegocioException("A conta destino está inativa e não pode receber ou enviar transações");
+        }
+
+        if (contaOrigem.getId().equals(contaDestino.getId())) {
+            throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
         }
 
         if (contaOrigem.getSaldo().compareTo(dto.getValor()) < 0) {
             throw new RegraNegocioException("Saldo insuficiente. Saldo Atual: " + contaOrigem.getSaldo());
-        }
-
-        if(!contaOrigem.getAtiva()){
-            throw new RegraNegocioException("Sua conta está inativa, você não pode enviar ou receber transações");
-        }
-
-        if(!contaDestino.getAtiva()){
-            throw new RegraNegocioException("A conta destino está inativa e não pode receber ou enviar transações");
         }
 
         Transacao transacao = new Transacao();
