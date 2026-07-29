@@ -1,6 +1,5 @@
-package api.service;
+package api.service; 
 
-import api.dto.AdminRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
@@ -33,7 +32,7 @@ public class AuthService {
     private ContaService contaService;
 
     @Transactional
-    public String registrarUsuario(UsuarioRequestDTO dto) {
+    public String registrarUsuario(UsuarioRequestDTO dto, TipoRole role) {
 
         if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new RegraNegocioException("Email já cadastrado: " + dto.getEmail());
@@ -58,7 +57,7 @@ public class AuthService {
 
         Usuario usuario = new Usuario();
 
-        usuario.setRole(TipoRole.ROLE_USUARIO);
+        usuario.setRole(role);
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
@@ -70,50 +69,11 @@ public class AuthService {
 
         usuarioRepository.save(usuario);
 
-        contaService.criar(usuario);
+        if (role.equals(TipoRole.ROLE_USUARIO)) {
+            contaService.criar(usuario);
+        }
 
         return "Usuário registrado com sucesso";
-    }
-
-    public String registrarAdmin(AdminRequestDTO dto) {
-
-        if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RegraNegocioException("Email já cadastrado: " + dto.getEmail());
-        }
-
-        if (usuarioRepository.findByCpf(dto.getCpf()).isPresent()) {
-            throw new RegraNegocioException("CPF já cadastrado: " + dto.getCpf());
-        }
-
-        if (!dto.getSenha().equals(dto.getConfirmarSenha())) {
-            throw new RegraNegocioException("As senhas devem ser iguais");
-        }
-
-        Endereco endereco = new Endereco();
-        endereco.setLogradouro(dto.getEndereco().getLogradouro());
-        endereco.setNumero(dto.getEndereco().getNumero());
-        endereco.setComplemento(dto.getEndereco().getComplemento());
-        endereco.setBairro(dto.getEndereco().getBairro());
-        endereco.setCidade(dto.getEndereco().getCidade());
-        endereco.setUf(dto.getEndereco().getUf());
-        endereco.setCep(dto.getEndereco().getCep());
-
-        Usuario usuario = new Usuario();
-
-        usuario.setRole(TipoRole.ROLE_ADMIN);
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
-        usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-        usuario.setCpf(dto.getCpf());
-        usuario.setDataNascimento(dto.getDataNascimento());
-        usuario.setEndereco(endereco);
-
-        endereco.setUsuario(usuario);
-
-        usuarioRepository.save(usuario);
-
-
-        return "Admin registrado com sucesso";
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {

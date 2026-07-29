@@ -31,6 +31,10 @@ public class ChavePixService {
     @Transactional
     public ChavePixResponseDTO cadastrar(ChavePixRequestDTO dto) {
 
+        if (chavePixRepository.findByChave(dto.getChave()).isPresent()) {
+            throw new RegraNegocioException("Chave pix já cadastrada");
+        }
+
         Usuario usuario = authService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
