@@ -25,4 +25,6 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
     
+    //fazer atualização do endereço
+
 }

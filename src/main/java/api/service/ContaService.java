@@ -13,10 +13,15 @@ import api.model.Conta;
 import api.model.Usuario;
 import api.repository.ContaRepository;
 import api.repository.UsuarioRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
 @Service
 public class ContaService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private ContaRepository contaRepository;
@@ -86,7 +91,14 @@ public class ContaService {
 
     }
 
+    @Transactional
     public ContaResponseDTO desativar(Long id) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario admin = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin não encontrado"));
+
+        definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 
         Conta conta = contaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
@@ -99,7 +111,14 @@ public class ContaService {
 
     }
 
+    @Transactional
     public ContaResponseDTO ativar(Long id) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario admin = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin não encontrado"));
+
+        definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 
         Conta conta = contaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
@@ -114,6 +133,13 @@ public class ContaService {
 
     private int calcularDigito(Long id) {
         return (int) (id % 10);
+    }
+
+    private void definirVariaveisSessaoSql(Long adminId, String adminNome) {
+        entityManager.createNativeQuery("SET @admin_id = :id, @admin_nome = :nome")
+                .setParameter("id", adminId)
+                .setParameter("nome", adminNome)
+                .executeUpdate();
     }
 
     private ContaResponseDTO toDTO(Conta conta) {

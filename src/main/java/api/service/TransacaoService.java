@@ -60,6 +60,14 @@ public class TransacaoService {
             throw new RegraNegocioException("Saldo insuficiente. Saldo Atual: " + contaOrigem.getSaldo());
         }
 
+        if(!contaOrigem.getAtiva()){
+            throw new RegraNegocioException("Sua conta está inativa, você não pode enviar ou receber transações");
+        }
+
+        if(!contaDestino.getAtiva()){
+            throw new RegraNegocioException("A conta destino está inativa e não pode receber ou enviar transações");
+        }
+
         Transacao transacao = new Transacao();
         transacao.setTipo(TipoTransacao.PIX);
         transacao.setValor(dto.getValor());
