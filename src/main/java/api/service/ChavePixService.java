@@ -103,16 +103,14 @@ public class ChavePixService {
 
         Usuario usuario = usuarioService.buscarUsuarioLogado();
 
-        Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
+        ChavePix chavePix = chavePixRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
 
-        if (!(usuario.getId() == usuarioDono)) {
+        if (!chavePix.getConta().getUsuario().getId().equals(usuario.getId())) {
             throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
         }
 
-        chavePixRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
-
-        chavePixRepository.deleteById(id);
+        chavePixRepository.delete(chavePix);
 
         return "Chave deletada";
 

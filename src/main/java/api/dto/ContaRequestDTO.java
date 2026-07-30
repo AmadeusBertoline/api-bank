@@ -1,13 +1,13 @@
 package api.dto;
 
 import lombok.Data;
-import api.enums.TipoConta;
+import api.model.Usuario;
 import jakarta.validation.constraints.NotNull;
 
 @Data
 public class ContaRequestDTO {
 
-    @NotNull(message = "O tipo da conta é obrigatório")
-    private TipoConta tipoConta;
+    @NotNull(message = "O usuário é obrigatório")
+    private Usuario usuario;
 
 }

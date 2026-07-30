@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
 import api.exception.RegraNegocioException;
@@ -30,9 +32,9 @@ public class ContaService {
     private UsuarioRepository usuarioRepository;
 
     @Transactional
-    public ContaResponseDTO criar(Usuario usuario) {
+    public ContaResponseDTO criar(ContaRequestDTO usuario) {
 
-        boolean possui = contaRepository.existsByUsuarioEmail(usuario.getEmail());
+        boolean possui = contaRepository.existsByUsuarioEmail(usuario.getUsuario().getEmail());
 
         if (possui) {
             throw new RegraNegocioException("O usuário já possui uma conta");
@@ -40,7 +42,7 @@ public class ContaService {
 
         Conta conta = new Conta();
         conta.setTipoConta(TipoConta.PAGAMENTO);
-        conta.setUsuario(usuario);
+        conta.setUsuario(usuario.getUsuario());
         conta.setNumeroConta("PENDENTE");
 
         conta = contaRepository.save(conta);

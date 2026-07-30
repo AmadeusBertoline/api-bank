@@ -48,7 +48,7 @@ class TransacaoServiceTest {
     @InjectMocks
     private TransacaoService transacaoService;
 
-    // CONTA DESTINO
+    // CONTA Origem
     private Conta contaExistente;
     private PixRequestDTO dto;
     private Usuario usuarioExistente;

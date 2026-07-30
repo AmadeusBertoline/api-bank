@@ -1,5 +1,6 @@
 package api.service;
 
+import api.dto.ContaRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
@@ -68,7 +69,9 @@ public class AuthService {
         usuarioRepository.save(usuario);
 
         if (role.equals(TipoRole.ROLE_USUARIO)) {
-            contaService.criar(usuario);
+            ContaRequestDTO contaRequestDTO = new ContaRequestDTO();
+            contaRequestDTO.setUsuario(usuario);
+            contaService.criar(contaRequestDTO);
         }
 
         return "Usuário registrado com sucesso";

@@ -1,23 +1,31 @@
 package api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import api.dto.ChavePixRequestDTO;
+import api.dto.ChavePixResponseDTO;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.exception.RegraNegocioException;
+import api.exception.ResourceNotFoundException;
+import api.model.ChavePix;
 import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
@@ -35,17 +43,25 @@ public class ChavePixServiceTest {
 
     @Mock
     private ContaRepository contaRepository;
-    
+
     @InjectMocks
     private ChavePixService chavePixService;
 
+    // CONTA ORIGEM
     private ChavePixRequestDTO chavePixRequestDTO;
     private Endereco enderecoExistente;
     private Conta contaExistente;
     private Usuario usuarioExistente;
+    private ChavePix chavePix;
+
+    // CONTA DESTINO
+    private Usuario usuarioDestino;
+    private Endereco enderecoDestino;
+    private Conta contaDestino;
+    private ChavePix chavePixDestino;
 
     @BeforeEach
-    void setup(){
+    void setup() {
 
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
@@ -81,8 +97,188 @@ public class ChavePixServiceTest {
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
+        chavePixRequestDTO = new ChavePixRequestDTO();
         chavePixRequestDTO.setChave(usuarioExistente.getCpf());
         chavePixRequestDTO.setTipo(TipoChavePix.CPF);
+
+        chavePix = new ChavePix();
+        chavePix.setId(1L);
+        chavePix.setChave(usuarioExistente.getCpf());
+        chavePix.setTipo(chavePixRequestDTO.getTipo());
+        chavePix.setConta(contaExistente);
+
+        enderecoDestino = new Endereco();
+        enderecoDestino.setId(2L);
+        enderecoDestino.setLogradouro("Avenida Atlântica");
+        enderecoDestino.setNumero("1702");
+        enderecoDestino.setComplemento("Apto 501");
+        enderecoDestino.setBairro("Copacabana");
+        enderecoDestino.setCidade("Rio de Janeiro");
+        enderecoDestino.setUf("RJ");
+        enderecoDestino.setCep("22021-001");
+
+        usuarioDestino = new Usuario();
+        usuarioDestino.setId(2L);
+        usuarioDestino.setNome("Maria Silva");
+        usuarioDestino.setEmail("maria.silva@email.com");
+        usuarioDestino.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");
+        usuarioDestino.setCpf("12345678901");
+        usuarioDestino.setDataNascimento(LocalDate.parse("1995-10-15"));
+        usuarioDestino.setRole(TipoRole.ROLE_USUARIO);
+        usuarioDestino.setDataCriacao(LocalDateTime.now());
+
+        usuarioDestino.setEndereco(enderecoDestino);
+        enderecoDestino.setUsuario(usuarioDestino);
+
+        contaDestino = new Conta();
+        contaDestino.setId(2L);
+        contaDestino.setUsuario(usuarioDestino);
+        contaDestino.setAgencia("0001");
+        contaDestino.setNumeroConta("0002-2");
+        contaDestino.setDigito("2");
+        contaDestino.setSaldo(new BigDecimal("500.00"));
+        contaDestino.setTipoConta(TipoConta.PAGAMENTO);
+        contaDestino.setAtiva(true);
+        contaDestino.setDataCriacao(LocalDateTime.now());
+
+        chavePixDestino = new ChavePix();
+        chavePixDestino.setId(2L);
+        chavePixDestino.setChave("12345678901");
+        chavePixDestino.setTipo(TipoChavePix.CPF);
+        chavePixDestino.setConta(contaDestino);
+
+    }
+
+    @Test
+    void deveCriarChavePixComSucesso() {
+
+        // ARRANGE
+        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(chavePixRepository.save(any(ChavePix.class))).thenReturn(chavePix);
+
+        // ACT
+        ChavePixResponseDTO resultado = chavePixService.cadastrar(chavePixRequestDTO);
+
+        // ASSERT
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getChave()).isEqualTo(chavePixRequestDTO.getChave());
+        assertThat(resultado.getContaId()).isEqualByComparingTo(contaExistente.getId());
+
+    }
+
+    @Test
+    void deveLancarExcecaoChavePixJaCadastrada() {
+
+        // ARRANGE
+        chavePixRequestDTO.setChave("57561884010");
+        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.of(chavePix));
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.cadastrar(chavePixRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Chave pix já cadastrada");
+
+    }
+
+    @Test
+    void deveLancarExcecaoContaNaoEncontrada() {
+
+        // ARRANGE
+        contaExistente.setUsuario(null);
+        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.cadastrar(chavePixRequestDTO))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conta não encontrada");
+
+        verify(chavePixRepository, never()).save(any());
+
+    }
+
+    @Test
+    void deveListarChavesPixComSucesso() {
+
+        // ARRANGE
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(chavePixRepository.findAllByContaId(contaExistente.getId())).thenReturn(List.of(chavePix));
+
+        // ACT
+        List<ChavePixResponseDTO> resultado = chavePixService.listarChavesPix();
+
+        // ASSERT
+        assertThat(resultado).isNotEmpty();
+        assertThat(resultado).hasSize(1);
+        assertThat(resultado.get(0).getChave()).isEqualTo(chavePix.getChave());
+        assertThat(resultado.get(0).getTipo()).isEqualTo(chavePix.getTipo());
+
+    }
+
+    @Test
+    void excecaoAoListarChavePixSemUsuarioLogado() {
+
+        // ARRANGE
+        when(usuarioService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.listarChavesPix())
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Não há um usuário logado");
+
+        verify(chavePixRepository, never()).findUsuarioIdByIdDaChave(any());
+
+    }
+
+    @Test
+    void deletarChavePixComSucesso() {
+
+        // ARRANGE
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(chavePixRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(chavePix));
+
+        // ACT
+        String resultado = chavePixService.deletar(1L);
+
+        // ASSERT
+        assertThat(resultado).isEqualTo("Chave deletada");
+        verify(chavePixRepository, times(1)).delete(any());
+
+    }
+
+    @Test
+    void excecaoAoNaoAcharChave() {
+
+        // ARRANGE
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.deletar(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Chave pix não encontrada de id " + 99L);
+
+        verify(chavePixRepository, never()).delete(any());
+
+    }
+
+    @Test
+    void excecaoNaoPodeDeletarChaveDeOutrosUsuarios() {
+
+        // ARRANGE
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(chavePixRepository.findById(2L)).thenReturn(Optional.of(chavePixDestino));
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.deletar(2L))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Somente a conta dona da chave pode altera-la");
+
+        verify(chavePixRepository, never()).delete(any());
 
     }
 

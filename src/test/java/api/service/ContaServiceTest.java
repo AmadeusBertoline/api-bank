@@ -1,5 +1,6 @@
 package api.service;
 
+import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
@@ -60,6 +61,7 @@ class ContaServiceTest {
     private Endereco enderecoExistente;
     private Conta contaExistente;
     private Usuario usuarioExistente;
+    private ContaRequestDTO contaRequestDTO;
 
     @BeforeEach
     void setup() {
@@ -108,6 +110,8 @@ class ContaServiceTest {
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
+        contaRequestDTO.setUsuario(usuarioExistente);
+
     }
 
     @Test
@@ -118,7 +122,7 @@ class ContaServiceTest {
         when(contaRepository.save(any(Conta.class))).thenReturn(contaExistente);
 
         // ACT
-        ContaResponseDTO resultado = contaService.criar(usuarioExistente);
+        ContaResponseDTO resultado = contaService.criar(contaRequestDTO);
 
         // ASSERT
         assertThat(resultado).isNotNull();
