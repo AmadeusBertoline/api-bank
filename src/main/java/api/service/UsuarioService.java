@@ -1,21 +1,24 @@
 package api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import api.dto.UsuarioResponseDTO;
+import api.exception.ResourceNotFoundException;
 import api.model.Usuario;
+import api.repository.UsuarioRepository;
 
 @Service
 public class UsuarioService {
 
     @Autowired
-    private AuthService authService;
+    private UsuarioRepository usuarioRepository;
 
     @Autowired
     private EnderecoService enderecoService;
 
     public UsuarioResponseDTO meusDados() {
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = buscarUsuarioLogado();
         return toDTO(usuario);
     }
 
@@ -37,6 +40,17 @@ public class UsuarioService {
         dto.setEndereco(enderecoService.toDTO(usuario.getEndereco()));
 
         return dto;
+
+    }
+
+    public Usuario buscarUsuarioLogado() {
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Não há um usuário logado"));
 
     }
 

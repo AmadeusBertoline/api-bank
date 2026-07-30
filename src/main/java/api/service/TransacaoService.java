@@ -33,12 +33,12 @@ public class TransacaoService {
     private ContaRepository contaRepository;
 
     @Autowired
-    private AuthService authService;
+    private UsuarioService usuarioService;
 
     @Transactional
     public TransacaoResponseDTO pix(PixRequestDTO dto) {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Conta contaOrigem = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(
@@ -91,7 +91,7 @@ public class TransacaoService {
 
     public List<TransacaoResponseDTO> listarPorConta() {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));

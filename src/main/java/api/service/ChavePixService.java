@@ -23,7 +23,7 @@ public class ChavePixService {
     private ChavePixRepository chavePixRepository;
 
     @Autowired
-    private AuthService authService;
+    private UsuarioService usuarioService;
 
     @Autowired
     private ContaRepository contaRepository;
@@ -35,7 +35,7 @@ public class ChavePixService {
             throw new RegraNegocioException("Chave pix já cadastrada");
         }
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
@@ -59,7 +59,7 @@ public class ChavePixService {
 
     public List<ChavePixResponseDTO> listarChavesPix() {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(
@@ -79,7 +79,7 @@ public class ChavePixService {
             throw new RegraNegocioException("Você não pode modificar seu cpf");
         }
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
 
@@ -101,7 +101,7 @@ public class ChavePixService {
 
     public String deletar(Long id) {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
 

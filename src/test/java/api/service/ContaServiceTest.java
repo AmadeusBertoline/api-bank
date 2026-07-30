@@ -1,11 +1,11 @@
 package api.service;
 
-import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
+import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.ContaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,44 +30,61 @@ class ContaServiceTest {
     @Mock
     private ContaRepository contaRepository;
 
-    @Mock private AuthService authService;
+    @Mock
+    private AuthService authService;
 
     @InjectMocks
     private ContaService contaService;
 
+    private Endereco enderecoExistente;
     private Conta contaExistente;
-    private ContaRequestDTO requestDTO;
     private Usuario usuarioExistente;
 
     @BeforeEach
     void setup() {
 
+        enderecoExistente = new Endereco();
+        enderecoExistente.setId(1L);
+        enderecoExistente.setLogradouro("Avenida Paulista");
+        enderecoExistente.setNumero("1000");
+        enderecoExistente.setComplemento("Apto 42");
+        enderecoExistente.setBairro("Bela Vista");
+        enderecoExistente.setCidade("São Paulo");
+        enderecoExistente.setUf("SP");
+        enderecoExistente.setCep("01310-100");
+
         usuarioExistente = new Usuario();
         usuarioExistente.setId(1L);
         usuarioExistente.setNome("Amadeus Bertoline");
         usuarioExistente.setEmail("amadeus@email.com");
-        usuarioExistente.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");                                                          
+        usuarioExistente.setSenha("$2a$10$vQ3E9V7zG3P7kR9sX8zOueH7yvK2eD5mN6qL1rBtYwG");
+        usuarioExistente.setCpf("57561884010");
+        usuarioExistente.setDataNascimento(LocalDate.parse("1998-05-20"));
         usuarioExistente.setRole(TipoRole.ROLE_USUARIO);
+        usuarioExistente.setDataCriacao(LocalDateTime.now());
+
+        usuarioExistente.setEndereco(enderecoExistente);
+        enderecoExistente.setUsuario(usuarioExistente);
 
         contaExistente = new Conta();
         contaExistente.setId(1L);
         contaExistente.setUsuario(usuarioExistente);
-        contaExistente.setNumeroConta("001-1");
-        contaExistente.setSaldo(new BigDecimal("0"));
+        contaExistente.setAgencia("0001");
+        contaExistente.setNumeroConta("0001-1");
+        contaExistente.setDigito("1");
+        contaExistente.setSaldo(new BigDecimal("1000.00"));
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
-        requestDTO = new ContaRequestDTO();
-        requestDTO.setTipoConta(TipoConta.PAGAMENTO);
     }
 
     @Test
     void deveCriarContaComSucesso() {
 
         // ARRANGE
+        when(contaRepository.existsByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(false);
         when(contaRepository.save(any(Conta.class))).thenReturn(contaExistente);
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
 
         // ACT
         ContaResponseDTO resultado = contaService.criar(usuarioExistente);
@@ -78,7 +95,6 @@ class ContaServiceTest {
         assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
 
-        verify(authService, times(1)).buscarUsuarioLogado();
     }
 
     @Test
@@ -121,17 +137,4 @@ class ContaServiceTest {
         assertThat(resultado.get(0).getTitular()).isEqualTo("Amadeus Bertoline");
     }
 
-    @Test
-    void deveLancarExcecaoAoDeletarContaInexistente() {
-
-        // ARRANGE
-        when(contaRepository.findById(99L)).thenReturn(Optional.empty());
-
-        // ACT + ASSERT
-        assertThatThrownBy(() -> contaService.deletar(99L))
-                .isInstanceOf(ResourceNotFoundException.class);
-
-        verify(contaRepository, never()).delete(any());
-
-    }
 }

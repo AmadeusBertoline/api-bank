@@ -69,15 +69,6 @@ public class ContaService {
 
     }
 
-    public void deletar(Long id) {
-
-        Conta conta = contaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + id));
-
-        contaRepository.delete(conta);
-
-    }
-
     public ContaResponseDTO meusDados() {
 
         String email = SecurityContextHolder.getContext()

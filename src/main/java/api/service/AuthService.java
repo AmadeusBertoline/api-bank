@@ -89,15 +89,6 @@ public class AuthService {
         return new LoginResponseDTO(token, "Bearer", usuario.getNome(), usuario.getRole());
     }
 
-    public Usuario buscarUsuarioLogado() {
-
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Não há um usuário logado"));
-
-    }
+    
 
 }

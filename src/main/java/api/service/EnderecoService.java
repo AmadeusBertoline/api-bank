@@ -18,11 +18,11 @@ public class EnderecoService {
     private EnderecoRepository enderecoRepository;
 
     @Autowired
-    private AuthService authService;
+    private UsuarioService usuarioService;
 
     public EnderecoResponseDTO atualizar(Long id, EnderecoRequestDTO dto) {
 
-        Usuario usuario = authService.buscarUsuarioLogado();
+        Usuario usuario = usuarioService.buscarUsuarioLogado();
 
         Endereco endereco = enderecoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado de id " + id));
