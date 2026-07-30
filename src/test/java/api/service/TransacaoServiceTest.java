@@ -43,7 +43,7 @@ class TransacaoServiceTest {
     private PixRepository pixRepository;
 
     @Mock
-    private AuthService authService;
+    private UsuarioService usuarioService;
 
     @InjectMocks
     private TransacaoService transacaoService;
@@ -158,7 +158,7 @@ class TransacaoServiceTest {
     void deveCriarTransacaoPixComSucesso() {
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
 
@@ -183,7 +183,7 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto.setValor(new BigDecimal("9999.00"));
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
 
@@ -203,7 +203,7 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto.setChavePix("57561884010");
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
 
@@ -222,7 +222,7 @@ class TransacaoServiceTest {
     void deveLancarExcecaoTransferenciaSemToken() {
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
+        when(usuarioService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -242,7 +242,7 @@ class TransacaoServiceTest {
         usuarioExistente.setEmail("incorreto@gmail.com");
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
@@ -262,7 +262,7 @@ class TransacaoServiceTest {
         dto.setChavePix("35625605084");
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
 
@@ -283,7 +283,7 @@ class TransacaoServiceTest {
         contaExistente.setAtiva(false);
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
 
@@ -304,7 +304,7 @@ class TransacaoServiceTest {
         contaDestino.setAtiva(false);
 
         // ARRANGE
-        when(authService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
 

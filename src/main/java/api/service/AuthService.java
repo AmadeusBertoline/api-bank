@@ -1,18 +1,16 @@
-package api.service; 
+package api.service;
 
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
-import api.exception.ResourceNotFoundException;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
 import api.security.JwtService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -88,7 +86,5 @@ public class AuthService {
 
         return new LoginResponseDTO(token, "Bearer", usuario.getNome(), usuario.getRole());
     }
-
-    
 
 }

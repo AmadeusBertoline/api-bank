@@ -27,7 +27,7 @@ public class ContaService {
     private ContaRepository contaRepository;
 
     @Autowired
-    UsuarioRepository usuarioRepository;
+    private UsuarioRepository usuarioRepository;
 
     @Transactional
     public ContaResponseDTO criar(Usuario usuario) {
@@ -60,14 +60,6 @@ public class ContaService {
 
     }
 
-    public ContaResponseDTO buscarPorId(Long id) {
-
-        Conta conta = contaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + id));
-
-        return toDTO(conta);
-
-    }
 
     public ContaResponseDTO meusDados() {
 
