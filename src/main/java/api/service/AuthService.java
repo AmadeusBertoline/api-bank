@@ -85,7 +85,7 @@ public class AuthService {
             throw new RegraNegocioException("Email ou senha inválidos");
         }
 
-        String token = jwtService.gerarToken(usuario.getEmail(), usuario.getRole());
+        String token = jwtService.gerarToken(usuario.getId(), usuario.getEmail(), usuario.getRole());
 
         return new LoginResponseDTO(token, "Bearer", usuario.getNome(), usuario.getRole());
     }

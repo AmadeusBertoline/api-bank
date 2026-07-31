@@ -161,7 +161,7 @@ public class AuthServiceTest {
         // ARRANGE
         String token = "token_simulado123@";
         when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
-        when(jwtService.gerarToken(usuarioExistente.getEmail(), usuarioExistente.getRole())).thenReturn(token);
+        when(jwtService.gerarToken(usuarioExistente.getId(), usuarioExistente.getEmail(), usuarioExistente.getRole())).thenReturn(token);
         when(passwordEncoder.matches(loginRequestDTO.getSenha(), usuarioExistente.getSenha())).thenReturn(true);
 
         // ACT
@@ -186,7 +186,7 @@ public class AuthServiceTest {
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Email ou senha inválidos");
 
-        verify(jwtService, never()).gerarToken(any(), any());
+        verify(jwtService, never()).gerarToken(any(), any(), any());
 
     }
 
@@ -203,7 +203,7 @@ public class AuthServiceTest {
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Email ou senha inválidos");
 
-        verify(jwtService, never()).gerarToken(any(), any());
+        verify(jwtService, never()).gerarToken(any(), any(), any());
 
     }
 

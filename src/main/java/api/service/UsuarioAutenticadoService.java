@@ -23,9 +23,9 @@ public class UsuarioAutenticadoService {
             throw new RegraNegocioException("Nenhum usuário autenticado encontrado no contexto.");
         }
 
-        String email = authentication.getName();
+        Long id = Long.parseLong(authentication.getName());
 
-        return usuarioRepository.findByEmail(email)
+        return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário logado não encontrado na base de dados."));
     }
 

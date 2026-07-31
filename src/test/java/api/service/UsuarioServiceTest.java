@@ -164,7 +164,7 @@ public class UsuarioServiceTest {
         // ACT + ASSERT
         assertThatThrownBy(() -> usuarioService.atualizar(dto))
                 .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Este e-mail já está cadastrado no sistema.");
+                .hasMessage("Esse e-mail já pertence a outro usuário");
 
         verify(usuarioRepository, never()).save(any());
     }

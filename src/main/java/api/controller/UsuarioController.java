@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
+import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
 import api.service.EnderecoService;
 import api.service.UsuarioService;
@@ -29,20 +30,24 @@ public class UsuarioController {
     private EnderecoService enderecoService;
 
     @GetMapping("/me")
-    public ResponseEntity<UsuarioResponseDTO> meusDados(){
+    public ResponseEntity<UsuarioResponseDTO> meusDados() {
         UsuarioResponseDTO usuario = usuarioService.meusDados();
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
-    
+
     @PatchMapping("/endereco/atualizar/{id}")
-    public ResponseEntity<EnderecoResponseDTO> atualizarEndereco(@PathVariable Long id, @RequestBody @Valid EnderecoRequestDTO dto){
+    public ResponseEntity<EnderecoResponseDTO> atualizarEndereco(@PathVariable Long id,
+            @RequestBody @Valid EnderecoRequestDTO dto) {
 
         EnderecoResponseDTO endereco = enderecoService.atualizar(id, dto);
         return ResponseEntity.status(HttpStatus.OK).body(endereco);
 
     }
 
-    @PatchMapping("/email/atualizar/{email}")
-    
+    @PatchMapping("/email/atualizar")
+    public ResponseEntity<UsuarioResponseDTO> atualizarEmail(@RequestBody @Valid UsuarioAtualizaEmailRequestDTO dto) {
+        UsuarioResponseDTO usuario = usuarioService.atualizar(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
 
 }

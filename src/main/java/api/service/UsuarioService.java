@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
 import api.exception.RegraNegocioException;
-import api.exception.ResourceNotFoundException;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
 

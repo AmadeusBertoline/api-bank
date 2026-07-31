@@ -14,17 +14,18 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtService {
-    
+
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    public String gerarToken(String email, TipoRole role){
+    public String gerarToken(Long id, String email, TipoRole role) {
 
         return Jwts.builder()
-                .subject(email)
+                .subject(id.toString())
+                .claim("email", email)
                 .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
@@ -33,36 +34,36 @@ public class JwtService {
 
     }
 
-    public String extrairEmail(String token){
+    public String extrairEmail(String token) {
         return extrairClaims(token).getSubject();
     }
 
-    public String extrairRole(String token){
+    public String extrairRole(String token) {
         return extrairClaims(token).get("role", String.class);
     }
 
-    public boolean tokenValido(String token){
+    public boolean tokenValido(String token) {
 
-        try{
+        try {
             extrairClaims(token);
             return true;
-        }catch(Exception e){
+        } catch (Exception e) {
             return false;
         }
 
     }
 
-    private Claims extrairClaims(String token){
+    private Claims extrairClaims(String token) {
 
         return Jwts.parser()
-        .verifyWith(getChave())
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+                .verifyWith(getChave())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
     }
 
-    private SecretKey getChave(){
+    private SecretKey getChave() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
