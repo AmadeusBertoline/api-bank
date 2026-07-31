@@ -1,5 +1,25 @@
 package api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoChavePix;
@@ -16,19 +36,6 @@ import api.model.Usuario;
 import api.repository.ContaRepository;
 import api.repository.PixRepository;
 import api.repository.TransacaoRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransacaoServiceTest {
@@ -43,12 +50,12 @@ class TransacaoServiceTest {
     private PixRepository pixRepository;
 
     @Mock
-    private UsuarioService usuarioService;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @InjectMocks
     private TransacaoService transacaoService;
 
-    // CONTA Origem
+    // CONTA ORIGEM
     private Conta contaExistente;
     private PixRequestDTO dto;
     private Usuario usuarioExistente;
@@ -158,7 +165,7 @@ class TransacaoServiceTest {
     void deveCriarTransacaoPixComSucesso() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
 
@@ -183,7 +190,7 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto.setValor(new BigDecimal("9999.00"));
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
 
@@ -203,7 +210,7 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto.setChavePix("57561884010");
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
 
@@ -222,12 +229,12 @@ class TransacaoServiceTest {
     void deveLancarExcecaoTransferenciaSemToken() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Não há um usuário logado");
+                .hasMessageContaining("Usuário inexistente");
 
         verify(contaRepository, never()).findByUsuarioEmail(any());
         verify(contaRepository, never()).save(any());
@@ -242,7 +249,7 @@ class TransacaoServiceTest {
         usuarioExistente.setEmail("incorreto@gmail.com");
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
@@ -262,7 +269,7 @@ class TransacaoServiceTest {
         dto.setChavePix("35625605084");
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
 
@@ -283,7 +290,7 @@ class TransacaoServiceTest {
         contaExistente.setAtiva(false);
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
 
@@ -304,7 +311,7 @@ class TransacaoServiceTest {
         contaDestino.setAtiva(false);
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
 

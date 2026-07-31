@@ -1,5 +1,26 @@
 package api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
@@ -11,25 +32,6 @@ import api.repository.ContaRepository;
 import api.repository.UsuarioRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ContaServiceTest {
@@ -41,10 +43,7 @@ class ContaServiceTest {
     private Query query;
 
     @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @Mock
     private ContaRepository contaRepository;
@@ -65,16 +64,6 @@ class ContaServiceTest {
 
     @BeforeEach
     void setup() {
-
-        when(entityManager.createNativeQuery(ArgumentMatchers.anyString()))
-                .thenReturn(query);
-
-        when(contaRepository.save(ArgumentMatchers.any(Conta.class)))
-                .thenReturn(contaExistente);
-
-        when(authentication.getName()).thenReturn("amadeus@email.com");
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
 
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
@@ -110,6 +99,7 @@ class ContaServiceTest {
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
+        contaRequestDTO = new ContaRequestDTO();
         contaRequestDTO.setUsuario(usuarioExistente);
 
     }
@@ -144,13 +134,15 @@ class ContaServiceTest {
         // ASSERT
         assertThat(resultado).hasSize(1);
         assertThat(resultado.get(0).getTitular()).isEqualTo("Amadeus Bertoline");
+
     }
 
     @Test
     void deveListarMinhaContaComSucesso() {
 
         // ARRANGE
-        when(contaRepository.findByUsuarioEmail("amadeus@email.com")).thenReturn(Optional.of(contaExistente));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
 
         // ACT
         ContaResponseDTO conta = contaService.meusDados();
@@ -165,7 +157,11 @@ class ContaServiceTest {
     void deveDesativarContaComSucesso() {
 
         // ARRANGE
-        when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
         contaExistente.setAtiva(false);
         when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
@@ -183,7 +179,11 @@ class ContaServiceTest {
     void deveAtivarContaComSucesso() {
 
         // ARRANGE
-        when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
         contaExistente.setAtiva(true);
         when(contaRepository.save(contaExistente)).thenReturn(contaExistente);

@@ -1,9 +1,10 @@
 package api.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
+import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
@@ -12,13 +13,34 @@ import api.repository.UsuarioRepository;
 public class UsuarioService {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @Autowired
     private EnderecoService enderecoService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    public UsuarioResponseDTO atualizar(UsuarioAtualizaEmailRequestDTO dto) {
+
+        Usuario logado = usuarioAutenticadoService.getUsuarioLogado();
+
+        if (!logado.getEmail().equalsIgnoreCase(dto.getEmail())) {
+            if (usuarioRepository.existsByEmail(dto.getEmail())) {
+                throw new RegraNegocioException("Esse e-mail já pertence a outro usuário");
+            }
+
+            logado.setEmail(dto.getEmail());
+
+        }
+
+        Usuario salvo = usuarioRepository.save(logado);
+        return toDTO(salvo);
+
+    }
+
     public UsuarioResponseDTO meusDados() {
-        Usuario usuario = buscarUsuarioLogado();
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
         return toDTO(usuario);
     }
 
@@ -40,17 +62,6 @@ public class UsuarioService {
         dto.setEndereco(enderecoService.toDTO(usuario.getEndereco()));
 
         return dto;
-
-    }
-
-    public Usuario buscarUsuarioLogado() {
-
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        return usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Não há um usuário logado"));
 
     }
 

@@ -7,17 +7,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
 import api.enums.TipoChavePix;
@@ -39,7 +42,7 @@ public class ChavePixServiceTest {
     private ChavePixRepository chavePixRepository;
 
     @Mock
-    private UsuarioService usuarioService;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @Mock
     private ContaRepository contaRepository;
@@ -154,7 +157,7 @@ public class ChavePixServiceTest {
 
         // ARRANGE
         when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(chavePixRepository.save(any(ChavePix.class))).thenReturn(chavePix);
 
@@ -188,7 +191,7 @@ public class ChavePixServiceTest {
         // ARRANGE
         contaExistente.setUsuario(null);
         when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
@@ -204,7 +207,7 @@ public class ChavePixServiceTest {
     void deveListarChavesPixComSucesso() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(chavePixRepository.findAllByContaId(contaExistente.getId())).thenReturn(List.of(chavePix));
 
@@ -223,12 +226,12 @@ public class ChavePixServiceTest {
     void excecaoAoListarChavePixSemUsuarioLogado() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.listarChavesPix())
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Não há um usuário logado");
+                .hasMessage("Usuário inexistente");
 
         verify(chavePixRepository, never()).findUsuarioIdByIdDaChave(any());
 
@@ -238,7 +241,7 @@ public class ChavePixServiceTest {
     void deletarChavePixComSucesso() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(chavePixRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(chavePix));
 
         // ACT
@@ -254,7 +257,7 @@ public class ChavePixServiceTest {
     void excecaoAoNaoAcharChave() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());
 
         // ACT + ASSERT
@@ -270,7 +273,7 @@ public class ChavePixServiceTest {
     void excecaoNaoPodeDeletarChaveDeOutrosUsuarios() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(chavePixRepository.findById(2L)).thenReturn(Optional.of(chavePixDestino));
 
         // ACT + ASSERT

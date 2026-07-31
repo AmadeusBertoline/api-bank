@@ -3,7 +3,6 @@ package api.service;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import api.dto.ContaRequestDTO;
@@ -14,7 +13,6 @@ import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Usuario;
 import api.repository.ContaRepository;
-import api.repository.UsuarioRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -29,7 +27,7 @@ public class ContaService {
     private ContaRepository contaRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @Transactional
     public ContaResponseDTO criar(ContaRequestDTO usuario) {
@@ -62,14 +60,11 @@ public class ContaService {
 
     }
 
-
     public ContaResponseDTO meusDados() {
 
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-        Conta conta = contaRepository.findByUsuarioEmail(email)
+        Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
         return toDTO(conta);
@@ -79,9 +74,7 @@ public class ContaService {
     @Transactional
     public ContaResponseDTO desativar(Long id) {
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario admin = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin não encontrado"));
+        Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 
         definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 
@@ -99,9 +92,7 @@ public class ContaService {
     @Transactional
     public ContaResponseDTO ativar(Long id) {
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Usuario admin = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Admin não encontrado"));
+        Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 
         definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 

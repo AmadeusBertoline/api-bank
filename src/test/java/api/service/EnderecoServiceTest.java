@@ -7,24 +7,23 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
-import api.model.ChavePix;
-import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.EnderecoRepository;
@@ -36,7 +35,7 @@ public class EnderecoServiceTest {
     private EnderecoRepository enderecoRepository;
 
     @Mock
-    private UsuarioService usuarioService;
+    private UsuarioAutenticadoService usuarioAutenticadoService;
 
     @InjectMocks
     private EnderecoService enderecoService;
@@ -47,8 +46,6 @@ public class EnderecoServiceTest {
 
     private Usuario usuarioDestino;
     private Endereco enderecoDestino;
-    private Conta contaDestino;
-    private ChavePix chavePixDestino;
 
     @BeforeEach
     void setup() {
@@ -114,7 +111,7 @@ public class EnderecoServiceTest {
     void deveAtualizarEnderecoComSucesso() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(enderecoRepository.findById(enderecoExistente.getId())).thenReturn(Optional.of(enderecoExistente));
         when(enderecoRepository.save(any(Endereco.class))).thenReturn(enderecoExistente);
 
@@ -134,12 +131,12 @@ public class EnderecoServiceTest {
     void excecaoAoNaoEncontrarUsuarioLogadoAoAtualizarEndereco() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenThrow(new ResourceNotFoundException("Não há um usuário logado"));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> enderecoService.atualizar(enderecoExistente.getId(), enderecoRequestDTO))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Não há um usuário logado");
+                .hasMessage("Usuário inexistente");
 
         verify(enderecoRepository, never()).save(any());
 
@@ -149,7 +146,7 @@ public class EnderecoServiceTest {
     void excecaoEnderecoNaoEncontradoAoAtualizar() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(enderecoRepository.findById(2L)).thenReturn(Optional.empty());
 
         // ACT + ASSERT
@@ -165,7 +162,7 @@ public class EnderecoServiceTest {
     void excecaoNaoPodeAlterarEnderecoDeTerceiros() {
 
         // ARRANGE
-        when(usuarioService.buscarUsuarioLogado()).thenReturn(usuarioDestino);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioDestino);
         when(enderecoRepository.findById(enderecoExistente.getId())).thenReturn(Optional.of(enderecoExistente));
 
         // ACT + ASSERT

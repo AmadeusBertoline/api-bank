@@ -41,6 +41,8 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.OK).body(endereco);
 
     }
+
+    @PatchMapping("/email/atualizar/{email}")
     
 
 }
