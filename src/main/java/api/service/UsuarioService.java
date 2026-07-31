@@ -20,7 +20,7 @@ public class UsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public UsuarioResponseDTO atualizar(UsuarioAtualizaEmailRequestDTO dto) {
+    public UsuarioResponseDTO atualizarEmail(UsuarioAtualizaEmailRequestDTO dto) {
 
         Usuario logado = usuarioAutenticadoService.getUsuarioLogado();
 

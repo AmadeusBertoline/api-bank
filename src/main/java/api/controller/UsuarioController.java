@@ -46,7 +46,7 @@ public class UsuarioController {
 
     @PatchMapping("/email/atualizar")
     public ResponseEntity<UsuarioResponseDTO> atualizarEmail(@RequestBody @Valid UsuarioAtualizaEmailRequestDTO dto) {
-        UsuarioResponseDTO usuario = usuarioService.atualizar(dto);
+        UsuarioResponseDTO usuario = usuarioService.atualizarEmail(dto);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
 

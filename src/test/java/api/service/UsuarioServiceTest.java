@@ -144,7 +144,7 @@ public class UsuarioServiceTest {
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioExistente);
 
         // ACT
-        UsuarioResponseDTO resultado = usuarioService.atualizar(dto);
+        UsuarioResponseDTO resultado = usuarioService.atualizarEmail(dto);
 
         // ASSERT
         assertThat(resultado).isNotNull();
@@ -162,7 +162,7 @@ public class UsuarioServiceTest {
         when(usuarioRepository.existsByEmail("outro.usuario@email.com")).thenReturn(true);
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> usuarioService.atualizar(dto))
+        assertThatThrownBy(() -> usuarioService.atualizarEmail(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Esse e-mail já pertence a outro usuário");
 
