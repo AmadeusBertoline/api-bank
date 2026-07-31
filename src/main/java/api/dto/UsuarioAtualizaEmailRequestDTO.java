@@ -1,14 +1,12 @@
 package api.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import api.validation.EmailValido;
 import lombok.Data;
 
 @Data
 public class UsuarioAtualizaEmailRequestDTO {
 
-    @NotBlank(message = "O email é obrigatório")
-    @Email(message = "Email incorreto")
+    @EmailValido
     private String email;
     
 }

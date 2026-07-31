@@ -1,5 +1,9 @@
 package api.enums;
 
 public enum TipoChavePix{
-    CPF
+    CPF,
+    CNPJ,
+    EMAIL,
+    TELEFONE,
+    ALEATORIA
 }

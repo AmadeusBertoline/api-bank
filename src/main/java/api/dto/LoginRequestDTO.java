@@ -1,17 +1,16 @@
 package api.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import api.validation.EmailValido;
+import api.validation.SenhaValida;
 import lombok.Data;
 
 @Data
 public class LoginRequestDTO {
     
-    @NotBlank(message = "O email é obrigatório")
-    @Email(message = "Email inválido")
+    @EmailValido
     private String email;
 
-    @NotBlank(message = "A senha é obrigatória")
+    @SenhaValida
     private String senha;
 
 }

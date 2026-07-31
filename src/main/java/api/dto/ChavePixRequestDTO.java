@@ -1,17 +1,33 @@
 package api.dto;
 
 import api.enums.TipoChavePix;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import api.validation.ChavePixCoerente;
+import api.validation.ChavePixValida;
+import api.validation.TipoChavePixValido;
 
-@Data
-public class ChavePixRequestDTO{
+@ChavePixCoerente
+public class ChavePixRequestDTO {
 
-    @NotBlank(message = "A chave é obrigatória")
+    @ChavePixValida
     private String chave;
 
-    @NotNull(message = "O tipo da chave Pix é obrigatório.")
+    @TipoChavePixValido
     private TipoChavePix tipo;
 
+    // Getters e Setters
+    public String getChave() {
+        return chave;
+    }
+
+    public void setChave(String chave) {
+        this.chave = chave;
+    }
+
+    public TipoChavePix getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoChavePix tipo) {
+        this.tipo = tipo;
+    }
 }

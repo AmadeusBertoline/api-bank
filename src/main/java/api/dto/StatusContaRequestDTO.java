@@ -1,12 +1,12 @@
 package api.dto;
 
-import jakarta.validation.constraints.NotNull;
+import api.validation.StatusAtivoValido;
 import lombok.Data;
 
 @Data
 public class StatusContaRequestDTO{
 
-    @NotNull(message = "Deve escolher um valor para modificar a conta: true or false")
+    @StatusAtivoValido
     private Boolean ativa;
 
 }
