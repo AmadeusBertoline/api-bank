@@ -33,6 +33,7 @@ import api.model.Endereco;
 import api.model.Pix;
 import api.model.Transacao;
 import api.model.Usuario;
+import api.repository.ChavePixRepository;
 import api.repository.ContaRepository;
 import api.repository.PixRepository;
 import api.repository.TransacaoRepository;
@@ -51,6 +52,9 @@ class TransacaoServiceTest {
 
     @Mock
     private UsuarioAutenticadoService usuarioAutenticadoService;
+
+    @Mock 
+    private ChavePixRepository chavePixRepository;
 
     @InjectMocks
     private TransacaoService transacaoService;
@@ -168,6 +172,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
+        when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixExistente));
 
         // ACT
         TransacaoResponseDTO transacao = transacaoService.pix(dto);
@@ -193,6 +198,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
+        when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixExistente));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -213,6 +219,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
+        when(chavePixRepository.findByChave("57561884010")).thenReturn(Optional.of(chavePixExistente));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -272,6 +279,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
+        
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -293,6 +301,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
+        when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixExistente));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -314,6 +323,7 @@ class TransacaoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
+        when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixExistente));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))

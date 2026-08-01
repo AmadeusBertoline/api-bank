@@ -9,15 +9,16 @@ import api.dto.TransacaoResponseDTO;
 import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
+import api.model.ChavePix;
 import api.model.Conta;
 import api.model.Pix;
 import api.model.Transacao;
 import api.model.Usuario;
+import api.repository.ChavePixRepository;
 import api.repository.ContaRepository;
 import api.repository.PixRepository;
 import api.repository.TransacaoRepository;
 import api.util.EndToEndIdUtil;
-import api.util.ValidadorChavePix;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -35,6 +36,9 @@ public class TransacaoService {
     @Autowired
     private UsuarioAutenticadoService usuarioAutenticadoService;
 
+    @Autowired
+    private ChavePixRepository chavePixRepository;
+
     @Transactional
     public TransacaoResponseDTO pix(PixRequestDTO dto) {
 
@@ -47,6 +51,9 @@ public class TransacaoService {
         Conta contaDestino = contaRepository.findByChavesPix(dto.getChavePix())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()));
+
+        ChavePix chavePix = chavePixRepository.findByChave(dto.getChavePix())
+                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada"));
 
         if (!contaOrigem.getAtiva()) {
             throw new RegraNegocioException("Sua conta está inativa, você não pode enviar ou receber transações");
@@ -74,7 +81,7 @@ public class TransacaoService {
         Pix pix = new Pix();
         pix.setTransacao(transacao);
         pix.setChavePix(dto.getChavePix());
-        pix.setTipoChave(ValidadorChavePix.identificarTipo(dto.getChavePix()));
+        pix.setTipoChave(chavePix.getTipo());
         pix.setEndToEndId(EndToEndIdUtil.gerar());
 
         contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(dto.getValor()));
