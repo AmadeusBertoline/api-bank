@@ -39,12 +39,7 @@ public class ChavePixController {
         return ResponseEntity.status(HttpStatus.OK).body(lista);
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<ChavePixResponseDTO> atualizar(@PathVariable Long id, @RequestBody @Valid ChavePixRequestDTO dto){
-
-        ChavePixResponseDTO chavePix = chavePixService.atualizar(id, dto);
-        return ResponseEntity.status(HttpStatus.OK).body(chavePix);
-    }
+    
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id){

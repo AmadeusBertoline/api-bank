@@ -42,13 +42,15 @@ public class ChavePixService {
 
         ChavePix chavePix = new ChavePix();
 
-        if (dto.getTipo().equals(TipoChavePix.CPF)) {
+        TipoChavePix tipo = TipoChavePix.detectar(dto.getChave());
+
+        if (tipo.equals(tipo)) {
             chavePix.setChave(usuario.getCpf());
         } else {
             chavePix.setChave(dto.getChave());
         }
 
-        chavePix.setTipo(dto.getTipo());
+        chavePix.setTipo(tipo);
         chavePix.setConta(conta);
 
         ChavePix salva = chavePixRepository.save(chavePix);
@@ -69,33 +71,6 @@ public class ChavePixService {
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
-
-    }
-
-    @Transactional
-    public ChavePixResponseDTO atualizar(Long id, ChavePixRequestDTO dto) {
-
-        if (dto.getTipo().equals(TipoChavePix.CPF)) {
-            throw new RegraNegocioException("Você não pode modificar seu cpf");
-        }
-
-        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
-
-        Long usuarioDono = chavePixRepository.findUsuarioIdByIdDaChave(id);
-
-        if (!(usuario.getId().equals(usuarioDono))) {
-            throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
-        }
-
-        ChavePix chavePix = chavePixRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
-
-        chavePix.setChave(dto.getChave());
-        chavePix.setTipo(dto.getTipo());
-
-        ChavePix salva = chavePixRepository.save(chavePix);
-
-        return toDTO(salva);
 
     }
 
