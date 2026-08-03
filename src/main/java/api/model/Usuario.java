@@ -30,7 +30,7 @@ public class Usuario {
     @Column(nullable = false)
     private LocalDate dataNascimento;
 
-    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private Endereco endereco;
 
     @Enumerated(EnumType.STRING)
@@ -42,7 +42,6 @@ public class Usuario {
 
     @PrePersist
     public void prePersist() {
-        this.role = TipoRole.ROLE_USUARIO;
         this.dataCriacao = LocalDateTime.now();
     }
 }

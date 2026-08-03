@@ -21,39 +21,12 @@ public class ContaController {
     @Autowired
     private ContaService contaService;
 
-    @Operation(summary = "listar todas as contas", description = "Lista todas as contas criadas")
-    @GetMapping("/all")
-    public ResponseEntity<List<ContaResponseDTO>> listarTodas() {
-        List<ContaResponseDTO> contas = contaService.listarTodas();
-        return ResponseEntity.ok(contas);
-    }
-
     @Operation(summary = "Exibir dados da minha conta corrente")
     @GetMapping("/me")
     public ResponseEntity<ContaResponseDTO> exibirContaCorrente() {
 
         ContaResponseDTO conta = contaService.meusDados();
         return ResponseEntity.ok(conta);
-    }
-
-    @Operation(summary = "desativar conta")
-    @PatchMapping("/desativar/{id}")
-    public ResponseEntity<ContaResponseDTO> desativar(@PathVariable Long id) {
-
-        ContaResponseDTO conta = contaService.desativar(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(conta);
-
-    }
-
-    @Operation(summary = "ativar conta")
-    @PatchMapping("/ativar/{id}")
-    public ResponseEntity<ContaResponseDTO> ativar(@PathVariable Long id) {
-
-        ContaResponseDTO conta = contaService.ativar(id);
-
-        return ResponseEntity.status(HttpStatus.OK).body(conta);
-
     }
 
 }

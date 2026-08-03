@@ -44,7 +44,7 @@ public class ChavePixService {
 
         TipoChavePix tipo = TipoChavePix.detectar(dto.getChave());
 
-        if (tipo.equals(tipo)) {
+        if (tipo.equals(TipoChavePix.CPF)) {
             chavePix.setChave(usuario.getCpf());
         } else {
             chavePix.setChave(dto.getChave());
@@ -74,20 +74,18 @@ public class ChavePixService {
 
     }
 
-    public String deletar(Long id) {
-
-        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+    public void deletar(Long id) {
 
         ChavePix chavePix = chavePixRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
+
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
         if (!chavePix.getConta().getUsuario().getId().equals(usuario.getId())) {
             throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");
         }
 
         chavePixRepository.delete(chavePix);
-
-        return "Chave deletada";
 
     }
 

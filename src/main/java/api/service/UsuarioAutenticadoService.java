@@ -24,6 +24,7 @@ public class UsuarioAutenticadoService {
         }
 
         Long id = Long.parseLong(authentication.getName());
+        System.out.println(">>> ID extraído do Token JWT: " + id);
 
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário logado não encontrado na base de dados."));

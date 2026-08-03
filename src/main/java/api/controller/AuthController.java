@@ -29,11 +29,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.registrarUsuario(dto, TipoRole.ROLE_USUARIO));
     }
 
-    @PostMapping("/admin")
-    public ResponseEntity<String> registrarAdmin(@Valid @RequestBody UsuarioRequestDTO dto) {
-        return ResponseEntity.ok(authService.registrarUsuario(dto, TipoRole.ROLE_ADMIN));
-    }
-
     @Operation(summary = "Login — retorna JWT")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO dto) {

@@ -34,8 +34,8 @@ public class JwtService {
 
     }
 
-    public String extrairEmail(String token) {
-        return extrairClaims(token).getSubject();
+    public Long extrairId(String token) {
+        return Long.parseLong(extrairClaims(token).getSubject());
     }
 
     public String extrairRole(String token) {

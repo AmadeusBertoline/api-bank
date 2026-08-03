@@ -36,12 +36,12 @@ public class Transacao {
     @Column(length = 255)
     private String descricao;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "conta_id", nullable = false)
     private Conta contaOrigem;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conta_destino_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "conta_destino_id", nullable = false)
     private Conta contaDestino;
 
     @Column(nullable = false)

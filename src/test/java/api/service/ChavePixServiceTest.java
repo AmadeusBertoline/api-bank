@@ -102,12 +102,11 @@ public class ChavePixServiceTest {
 
         chavePixRequestDTO = new ChavePixRequestDTO();
         chavePixRequestDTO.setChave(usuarioExistente.getCpf());
-        chavePixRequestDTO.setTipo(TipoChavePix.CPF);
 
         chavePix = new ChavePix();
         chavePix.setId(1L);
         chavePix.setChave(usuarioExistente.getCpf());
-        chavePix.setTipo(chavePixRequestDTO.getTipo());
+        chavePix.setTipo(TipoChavePix.CPF);
         chavePix.setConta(contaExistente);
 
         enderecoDestino = new Endereco();
@@ -226,7 +225,8 @@ public class ChavePixServiceTest {
     void excecaoAoListarChavePixSemUsuarioLogado() {
 
         // ARRANGE
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
+        when(usuarioAutenticadoService.getUsuarioLogado())
+                .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.listarChavesPix())
@@ -245,10 +245,9 @@ public class ChavePixServiceTest {
         when(chavePixRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(chavePix));
 
         // ACT
-        String resultado = chavePixService.deletar(1L);
+        chavePixService.deletar(1L);
 
         // ASSERT
-        assertThat(resultado).isEqualTo("Chave deletada");
         verify(chavePixRepository, times(1)).delete(any());
 
     }

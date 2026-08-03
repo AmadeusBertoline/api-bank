@@ -57,6 +57,7 @@ public class AuthService {
         Usuario usuario = new Usuario();
 
         usuario.setRole(role);
+
         usuario.setNome(dto.getNome());
         usuario.setEmail(dto.getEmail());
         usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
@@ -75,6 +76,7 @@ public class AuthService {
         }
 
         return "Usuário registrado com sucesso";
+
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
