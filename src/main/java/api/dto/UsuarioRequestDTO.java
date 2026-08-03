@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import api.validation.CpfValido;
 import api.validation.EmailValido;
 import api.validation.EnderecoValido;
-import api.validation.MaiorDeIdade;
 import api.validation.NomeValido;
+import api.validation.PeloMenos16Anos;
 import api.validation.SenhaValida;
 import lombok.Data;
 
@@ -26,7 +26,7 @@ public class UsuarioRequestDTO {
     @CpfValido
     private String cpf;
 
-    @MaiorDeIdade
+    @PeloMenos16Anos
     private LocalDate dataNascimento;
 
     @EnderecoValido
