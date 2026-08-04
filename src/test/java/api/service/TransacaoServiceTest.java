@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,9 +29,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoChavePix;
@@ -197,7 +193,6 @@ class TransacaoServiceTest {
     void deveCriarTransacaoPixComSucesso() {
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
@@ -221,26 +216,9 @@ class TransacaoServiceTest {
     }
 
     @Test
-    void deveLancarExcecaoTransacaoDuplicadaIdempotencia() {
-
-        // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(true);
-
-        // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto))
-                .isInstanceOf(RegraNegocioException.class)
-                .hasMessageContaining("Esta transação já foi processada.");
-
-        verify(usuarioAutenticadoService, never()).getUsuarioLogado();
-        verify(transacaoRepository, never()).save(any());
-
-    }
-
-    @Test
     void deveLancarExcecaoLimiteDiarioExcedido() {
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
@@ -266,7 +244,6 @@ class TransacaoServiceTest {
         dto.setValor(new BigDecimal("9999.00"));
         contaExistente.setLimiteDiarioPix(new BigDecimal("20000.00"));
 
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("12345678901")).thenReturn(Optional.of(contaDestino));
@@ -290,7 +267,6 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto.setChavePix("57561884010");
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
@@ -310,7 +286,6 @@ class TransacaoServiceTest {
     void deveLancarExcecaoTransferenciaSemToken() {
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado())
                 .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
@@ -331,7 +306,6 @@ class TransacaoServiceTest {
         usuarioExistente.setEmail("incorreto@gmail.com");
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
@@ -351,7 +325,6 @@ class TransacaoServiceTest {
         dto.setChavePix("35625605084");
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
@@ -372,7 +345,6 @@ class TransacaoServiceTest {
         contaExistente.setAtiva(false);
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
@@ -396,7 +368,6 @@ class TransacaoServiceTest {
         contaDestino.setAtiva(false);
 
         // ARRANGE
-        when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
