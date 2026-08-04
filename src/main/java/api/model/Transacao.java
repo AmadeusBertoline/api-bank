@@ -47,9 +47,6 @@ public class Transacao {
     @Column(nullable = false)
     private LocalDateTime dataHora;
 
-    @Column(nullable = false, unique = true)
-    private String idempotencyKey;
-
     @PrePersist
     public void prePersist() {
         this.dataHora = LocalDateTime.now();

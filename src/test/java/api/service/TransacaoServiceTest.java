@@ -207,7 +207,7 @@ class TransacaoServiceTest {
         when(transacaoRepository.sumValorEnviadoHoje(eq(1L), any())).thenReturn(BigDecimal.ZERO);
 
         // ACT
-        TransacaoResponseDTO transacao = transacaoService.pix(dto, idempotencyKey);
+        TransacaoResponseDTO transacao = transacaoService.pix(dto);
 
         // ASSERT
         assertThat(transacao).isNotNull();
@@ -227,7 +227,7 @@ class TransacaoServiceTest {
         when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(true);
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("Esta transação já foi processada.");
 
@@ -250,7 +250,7 @@ class TransacaoServiceTest {
         when(transacaoRepository.sumValorEnviadoHoje(eq(1L), any())).thenReturn(new BigDecimal("600.00"));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("Limite diário de Pix excedido");
 
@@ -276,7 +276,7 @@ class TransacaoServiceTest {
         when(transacaoRepository.sumValorEnviadoHoje(eq(1L), any())).thenReturn(BigDecimal.ZERO);
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("Saldo insuficiente");
 
@@ -296,7 +296,7 @@ class TransacaoServiceTest {
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("iguais");
 
@@ -315,7 +315,7 @@ class TransacaoServiceTest {
                 .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Usuário inexistente");
 
@@ -336,7 +336,7 @@ class TransacaoServiceTest {
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Conta origem não encontrada de id " + usuarioExistente.getId());
 
@@ -357,7 +357,7 @@ class TransacaoServiceTest {
         when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Conta destino não encontrada de id " + usuarioExistente.getId());
 
@@ -381,7 +381,7 @@ class TransacaoServiceTest {
         when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixDestino));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("Sua conta está inativa, você não pode enviar ou receber transações");
 
@@ -405,7 +405,7 @@ class TransacaoServiceTest {
         when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixDestino));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
+        assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("A conta destino está inativa e não pode receber ou enviar transações");
 

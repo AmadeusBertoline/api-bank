@@ -30,10 +30,9 @@ public class TransacaoController {
 
     @Operation(summary = "realizar PIX", description = "realizar um PIX")
     @PostMapping
-    public ResponseEntity<TransacaoResponseDTO> pix(@RequestHeader("X-Idempotency-key") String idempotency,
-            @RequestBody @Valid PixRequestDTO dto) {
+    public ResponseEntity<TransacaoResponseDTO> pix(@RequestBody @Valid PixRequestDTO dto) {
 
-        TransacaoResponseDTO realizada = transacaoService.pix(dto, idempotency);
+        TransacaoResponseDTO realizada = transacaoService.pix(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(realizada);
 
     }

@@ -43,11 +43,7 @@ public class TransacaoService {
     private ChavePixRepository chavePixRepository;
 
     @Transactional
-    public TransacaoResponseDTO pix(PixRequestDTO dto, String idempotencyKey) {
-
-        if (transacaoRepository.existsByIdempotencyKey(idempotencyKey)) {
-            throw new RegraNegocioException("Esta transação já foi processada.");
-        }
+    public TransacaoResponseDTO pix(PixRequestDTO dto) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
@@ -56,8 +52,8 @@ public class TransacaoService {
                         () -> new ResourceNotFoundException("Conta origem não encontrada de id " + usuario.getId()));
 
         Conta destinoTemp = contaRepository.findByChavesPix(dto.getChavePix())
-                .orElseThrow(() -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()
-                        + " verifique se essa chave pix está cadastrada"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conta destino não encontrada de id  verifique se essa chave pix está cadastrada"));
 
         if (origemTemp.getId().equals(destinoTemp.getId())) {
             throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
@@ -108,7 +104,6 @@ public class TransacaoService {
         transacao.setDescricao(dto.getDescricao());
         transacao.setContaOrigem(contaOrigem);
         transacao.setContaDestino(contaDestino);
-        transacao.setIdempotencyKey(idempotencyKey);
 
         Pix pix = new Pix();
         pix.setTransacao(transacao);
