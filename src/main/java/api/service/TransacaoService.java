@@ -44,11 +44,11 @@ public class TransacaoService {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-        Conta contaOrigem = contaRepository.findByUsuarioEmail(usuario.getEmail())
+        Conta contaOrigem = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta origem não encontrada de id " + usuario.getId()));
 
-        Conta contaDestino = contaRepository.findByChavesPix(dto.getChavePix())
+        Conta contaDestino = contaRepository.findByChavesPixWithLock(dto.getChavePix())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()
                                 + " verifique se essa chave pix está cadastrada"));
@@ -86,9 +86,7 @@ public class TransacaoService {
         pix.setEndToEndId(EndToEndIdUtil.gerar());
 
         contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(dto.getValor()));
-        contaRepository.save(contaOrigem);
         contaDestino.setSaldo(contaDestino.getSaldo().add(dto.getValor()));
-        contaRepository.save(contaDestino);
 
         transacaoRepository.save(transacao);
         pixRepository.save(pix);

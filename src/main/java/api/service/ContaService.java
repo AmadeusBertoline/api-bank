@@ -78,7 +78,7 @@ public class ContaService {
 
         definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 
-        Conta conta = contaRepository.findById(id)
+        Conta conta = contaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
 
         conta.setAtiva(false);
@@ -96,7 +96,7 @@ public class ContaService {
 
         definirVariaveisSessaoSql(admin.getId(), admin.getNome());
 
-        Conta conta = contaRepository.findById(id)
+        Conta conta = contaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
 
         conta.setAtiva(true);

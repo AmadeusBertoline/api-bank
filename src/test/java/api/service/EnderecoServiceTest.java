@@ -7,22 +7,18 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
 import api.enums.TipoRole;
-import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Endereco;
 import api.model.Usuario;
@@ -131,7 +127,8 @@ public class EnderecoServiceTest {
     void excecaoAoNaoEncontrarUsuarioLogadoAoAtualizarEndereco() {
 
         // ARRANGE
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
+        when(usuarioAutenticadoService.getUsuarioLogado())
+                .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
@@ -157,6 +154,5 @@ public class EnderecoServiceTest {
         verify(enderecoRepository, never()).save(any());
 
     }
-
 
 }
