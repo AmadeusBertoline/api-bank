@@ -3,6 +3,8 @@ package api.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,7 +57,7 @@ public class TransacaoService {
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta origem não encontrada de id " + usuario.getId()));
 
-        Conta destinoTemp = contaRepository.findByChavesPix(dto.getChavePix())
+        Conta destinoTemp = contaRepository.findByChavesPix(dto.chavePix())
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Conta destino não encontrada, verifique se essa chave pix está cadastrada"));
 
@@ -77,7 +79,7 @@ public class TransacaoService {
         Conta contaOrigem = origemTemp.getId().equals(primeiroId) ? conta1 : conta2;
         Conta contaDestino = destinoTemp.getId().equals(primeiroId) ? conta1 : conta2;
 
-        ChavePix chavePix = chavePixRepository.findByChave(dto.getChavePix())
+        ChavePix chavePix = chavePixRepository.findByChave(dto.chavePix())
                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada"));
 
         if (!contaOrigem.getAtiva()) {
@@ -91,32 +93,32 @@ public class TransacaoService {
         // validação de limite diário
         LocalDateTime inicioDoDia = LocalDate.now().atStartOfDay();
         BigDecimal totalEnviadoHoje = transacaoRepository.sumValorEnviadoHoje(contaOrigem.getId(), inicioDoDia);
-        BigDecimal novoTotal = totalEnviadoHoje.add(dto.getValor());
+        BigDecimal novoTotal = totalEnviadoHoje.add(dto.valor());
 
         if (contaOrigem.getLimiteDiarioPix() != null && novoTotal.compareTo(contaOrigem.getLimiteDiarioPix()) > 0) {
             throw new RegraNegocioException("Limite diário de Pix excedido. Limite atual: R$ "
                     + contaOrigem.getLimiteDiarioPix() + ". Já utilizado hoje: R$ " + totalEnviadoHoje);
         }
 
-        if (contaOrigem.getSaldo().compareTo(dto.getValor()) < 0) {
+        if (contaOrigem.getSaldo().compareTo(dto.valor()) < 0) {
             throw new RegraNegocioException("Saldo insuficiente. Saldo Atual: " + contaOrigem.getSaldo());
         }
 
         Transacao transacao = new Transacao();
         transacao.setTipo(TipoTransacao.PIX);
-        transacao.setValor(dto.getValor());
-        transacao.setDescricao(dto.getDescricao());
+        transacao.setValor(dto.valor());
+        transacao.setDescricao(dto.descricao());
         transacao.setContaOrigem(contaOrigem);
         transacao.setContaDestino(contaDestino);
 
         Pix pix = new Pix();
         pix.setTransacao(transacao);
-        pix.setChavePix(dto.getChavePix());
+        pix.setChavePix(dto.chavePix());
         pix.setTipoChave(chavePix.getTipo());
         pix.setEndToEndId(EndToEndIdUtil.gerar());
 
-        contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(dto.getValor()));
-        contaDestino.setSaldo(contaDestino.getSaldo().add(dto.getValor()));
+        contaOrigem.setSaldo(contaOrigem.getSaldo().subtract(dto.valor()));
+        contaDestino.setSaldo(contaDestino.getSaldo().add(dto.valor()));
 
         transacaoRepository.save(transacao);
         pixRepository.save(pix);
@@ -137,21 +139,23 @@ public class TransacaoService {
 
     private TransacaoResponseDTO toDTO(Transacao transacao) {
 
-        TransacaoResponseDTO dto = new TransacaoResponseDTO();
-        dto.setTipo(transacao.getTipo());
-        dto.setValor(transacao.getValor());
-        dto.setDescricao(transacao.getDescricao());
-        dto.setDataHora(transacao.getDataHora());
+        String titularOrigem = Optional.ofNullable(transacao.getContaOrigem())
+                .map(Conta::getUsuario)
+                .map(Usuario::getNome)
+                .orElse(null);
 
-        if (transacao.getContaDestino() != null) {
-            dto.setTitularContaDestino(transacao.getContaDestino().getUsuario().getNome());
-        }
+        String titularDestino = Optional.ofNullable(transacao.getContaDestino())
+                .map(Conta::getUsuario)
+                .map(Usuario::getNome)
+                .orElse(null);
 
-        if (transacao.getContaOrigem() != null) {
-            dto.setTitularConta(transacao.getContaOrigem().getUsuario().getNome());
-        }
-
-        return dto;
+        return new TransacaoResponseDTO(
+                titularOrigem,
+                titularDestino,
+                transacao.getTipo(),
+                transacao.getValor(),
+                transacao.getDescricao(),
+                transacao.getDataHora());
 
     }
 

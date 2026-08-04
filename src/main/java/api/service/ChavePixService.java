@@ -35,7 +35,7 @@ public class ChavePixService {
     @Transactional
     public ChavePixResponseDTO cadastrar(ChavePixRequestDTO dto) {
 
-        if (chavePixRepository.findByChave(dto.getChave()).isPresent()) {
+        if (chavePixRepository.findByChave(dto.chave()).isPresent()) {
             throw new RegraNegocioException("Chave pix já cadastrada");
         }
 
@@ -46,12 +46,12 @@ public class ChavePixService {
 
         ChavePix chavePix = new ChavePix();
 
-        TipoChavePix tipo = TipoChavePix.detectar(dto.getChave());
+        TipoChavePix tipo = TipoChavePix.detectar(dto.chave());
 
         if (tipo.equals(TipoChavePix.CPF)) {
             chavePix.setChave(usuario.getCpf());
         } else {
-            chavePix.setChave(dto.getChave());
+            chavePix.setChave(dto.chave());
         }
 
         chavePix.setTipo(tipo);
@@ -95,16 +95,9 @@ public class ChavePixService {
 
     private ChavePixResponseDTO toDTO(ChavePix chavePix) {
 
-        ChavePixResponseDTO dto = new ChavePixResponseDTO();
-        dto.setId(chavePix.getId());
-        dto.setChave(chavePix.getChave());
-        dto.setTipo(chavePix.getTipo());
+        return new ChavePixResponseDTO(chavePix.getId(), chavePix.getChave(), chavePix.getTipo(),
+                chavePix.getConta().getId());
 
-        if (chavePix.getConta() != null) {
-            dto.setContaId(chavePix.getConta().getId());
-        }
-
-        return dto;
     }
 
 }

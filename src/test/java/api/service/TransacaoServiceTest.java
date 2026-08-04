@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoChavePix;
@@ -82,7 +83,7 @@ class TransacaoServiceTest {
     private Conta contaDestino;
     private ChavePix chavePixDestino;
     private TransacaoResponseDTO transacaoResponseDTO;
-   
+
     @BeforeEach
     void setup() {
 
@@ -172,18 +173,21 @@ class TransacaoServiceTest {
         chavePixDestino.setTipo(TipoChavePix.CPF);
         chavePixDestino.setConta(contaDestino);
 
-        dto = new PixRequestDTO();
-        dto.setChavePix("12345678901");
-        dto.setValor(new BigDecimal("500.00"));
-        dto.setDescricao("pix da praia");
+        // INSTANCIAÇÃO DOS RECORDS
+        dto = new PixRequestDTO(
+                "12345678901",
+                new BigDecimal("500.00"),
+                "pix da praia"
+        );
 
-        transacaoResponseDTO = new TransacaoResponseDTO();
-        transacaoResponseDTO.setTitularConta("João Silva");
-        transacaoResponseDTO.setTitularContaDestino("Maria Oliveira");
-        transacaoResponseDTO.setTipo(TipoTransacao.PIX);
-        transacaoResponseDTO.setValor(dto.getValor());
-        transacaoResponseDTO.setDescricao(dto.getDescricao());
-        transacaoResponseDTO.setDataHora(LocalDateTime.now());
+        transacaoResponseDTO = new TransacaoResponseDTO(
+                "João Silva",
+                "Maria Oliveira",
+                TipoTransacao.PIX,
+                dto.valor(),
+                dto.descricao(),
+                LocalDateTime.now()
+        );
     }
 
     @Test
@@ -203,13 +207,12 @@ class TransacaoServiceTest {
 
         // ASSERT
         assertThat(transacao).isNotNull();
-        assertThat(transacao.getValor()).isEqualByComparingTo("500.00");
+        assertThat(transacao.valor()).isEqualByComparingTo("500.00");
         assertThat(contaExistente.getSaldo()).isEqualByComparingTo("500.00");
         assertThat(contaDestino.getSaldo()).isEqualByComparingTo("1000.00");
 
         verify(transacaoRepository, times(1)).save(any(Transacao.class));
         verify(pixRepository, times(1)).save(any(Pix.class));
-
     }
 
     @Test
@@ -231,14 +234,13 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
     void deveLancarExcecaoSaldoInsuficiente() {
 
         // ARRANGE
-        dto.setValor(new BigDecimal("9999.00"));
+        dto = new PixRequestDTO(dto.chavePix(), new BigDecimal("9999.00"), dto.descricao());
         contaExistente.setLimiteDiarioPix(new BigDecimal("20000.00"));
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
@@ -256,14 +258,13 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
     void deveLancarExcecaoTransferenciaParaSiMesmo() {
 
         // ARRANGE
-        dto.setChavePix("57561884010");
+        dto = new PixRequestDTO("57561884010", dto.valor(), dto.descricao());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix("57561884010")).thenReturn(Optional.of(contaExistente));
@@ -276,7 +277,6 @@ class TransacaoServiceTest {
         verify(contaRepository, never()).findByIdWithLock(any());
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
@@ -294,7 +294,6 @@ class TransacaoServiceTest {
         verify(contaRepository, never()).findByUsuarioEmail(any());
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
@@ -313,18 +312,17 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
     void deveLancarExcecaoContaDestinoNaoEncontrada() {
 
-        dto.setChavePix("35625605084");
+        dto = new PixRequestDTO("35625605084", dto.valor(), dto.descricao());
 
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
-        when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.empty());
+        when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
@@ -333,7 +331,6 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
@@ -344,7 +341,7 @@ class TransacaoServiceTest {
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
-        when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
+        when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.of(contaDestino));
         when(contaRepository.findByIdWithLock(1L)).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByIdWithLock(2L)).thenReturn(Optional.of(contaDestino));
         when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixDestino));
@@ -356,7 +353,6 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
@@ -367,7 +363,7 @@ class TransacaoServiceTest {
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
-        when(contaRepository.findByChavesPix(dto.getChavePix())).thenReturn(Optional.of(contaDestino));
+        when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.of(contaDestino));
         when(contaRepository.findByIdWithLock(1L)).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByIdWithLock(2L)).thenReturn(Optional.of(contaDestino));
         when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.of(chavePixDestino));
@@ -379,14 +375,13 @@ class TransacaoServiceTest {
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
-
     }
 
     @Test
     void listarPorConta_DeveRetornarPageDeDTOs() {
         // ARRANGE
         Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
-        Transacao transacao = new Transacao(/* inicializar com dados mock */);
+        Transacao transacao = new Transacao();
         Page<Transacao> pageMock = new PageImpl<>(List.of(transacao), pageable, 1);
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
@@ -402,5 +397,4 @@ class TransacaoServiceTest {
         assertEquals(1, resultado.getContent().size());
         verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
     }
-
 }

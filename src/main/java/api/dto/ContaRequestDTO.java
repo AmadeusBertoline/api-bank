@@ -1,13 +1,9 @@
 package api.dto;
 
-import lombok.Data;
 import api.model.Usuario;
 import jakarta.validation.constraints.NotNull;
 
-@Data
-public class ContaRequestDTO {
-
+public record ContaRequestDTO(
     @NotNull(message = "O usuário é obrigatório")
-    private Usuario usuario;
-
-}
+    Usuario usuario
+) {}

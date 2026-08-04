@@ -6,28 +6,18 @@ import api.validation.CidadeValida;
 import api.validation.LogradouroValido;
 import api.validation.NumeroEnderecoValido;
 import api.validation.UfValida;
-import lombok.Data;
 
-@Data
-public class EnderecoRequestDTO {
+public record EnderecoRequestDTO(
+    @LogradouroValido String logradouro,
+    @NumeroEnderecoValido String numero,
+    String complemento,
+    @BairroValido String bairro,
+    @CidadeValida String cidade,
+    @UfValida String uf,
+    @CepValido String cep
+) {
 
-    @LogradouroValido
-    private String logradouro;
-
-    @NumeroEnderecoValido
-    private String numero;
-
-    private String complemento;
-
-    @BairroValido
-    private String bairro;
-
-    @CidadeValida
-    private String cidade;
-
-    @UfValida
-    private String uf;
-
-    @CepValido
-    private String cep;
-}
+    public String getUf() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getUf'");
+    }}

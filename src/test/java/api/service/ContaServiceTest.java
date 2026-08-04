@@ -1,23 +1,22 @@
 package api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
@@ -29,6 +28,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
@@ -38,7 +38,6 @@ import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.ContaRepository;
-import api.repository.UsuarioRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
@@ -57,12 +56,6 @@ class ContaServiceTest {
     @Mock
     private ContaRepository contaRepository;
 
-    @Mock
-    private AuthService authService;
-
-    @Mock
-    private UsuarioRepository usuarioRepository;
-
     @InjectMocks
     private ContaService contaService;
 
@@ -73,7 +66,6 @@ class ContaServiceTest {
 
     @BeforeEach
     void setup() {
-
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
         enderecoExistente.setLogradouro("Avenida Paulista");
@@ -93,7 +85,6 @@ class ContaServiceTest {
         usuarioExistente.setDataNascimento(LocalDate.parse("1998-05-20"));
         usuarioExistente.setRole(TipoRole.ROLE_USUARIO);
         usuarioExistente.setDataCriacao(LocalDateTime.now());
-
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
 
@@ -108,178 +99,147 @@ class ContaServiceTest {
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
-        contaRequestDTO = new ContaRequestDTO();
-        contaRequestDTO.setUsuario(usuarioExistente);
-
+        // Instanciação direta via construtor do Record
+        contaRequestDTO = new ContaRequestDTO(usuarioExistente);
     }
 
     @Test
+    @DisplayName("Deve criar conta com sucesso")
     void deveCriarContaComSucesso() {
-
-        // ARRANGE
         when(contaRepository.existsByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(false);
         when(contaRepository.save(any(Conta.class))).thenReturn(contaExistente);
 
-        // ACT
         ContaResponseDTO resultado = contaService.criar(contaRequestDTO);
 
-        // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getTitular()).isEqualTo("Amadeus Bertoline");
-        assertThat(resultado.getSaldo()).isEqualByComparingTo("1000.00");
+        assertThat(resultado.titular()).isEqualTo("Amadeus Bertoline");
+        assertThat(resultado.saldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
-
     }
 
     @Test
+    @DisplayName("Deve listar todas as contas paginadas")
     void deveListarTodasAsContas() {
-
-        // ARRANGE
         Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
-
         Page<Conta> pageMock = new PageImpl<>(List.of(contaExistente), pageable, 1);
 
         when(contaRepository.findAll(pageable)).thenReturn(pageMock);
 
-        // ACT
         Page<ContaResponseDTO> resultado = contaService.listarTodas(pageable);
 
-        // ASSERT
         assertThat(resultado.getContent()).hasSize(1);
-        assertThat(resultado.getContent().get(0).getTitular()).isEqualTo("Amadeus Bertoline");
+        assertThat(resultado.getContent().get(0).titular()).isEqualTo("Amadeus Bertoline");
     }
 
     @Test
+    @DisplayName("Deve retornar dados da minha conta com sucesso")
     void deveListarMinhaContaComSucesso() {
-
-        // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
 
-        // ACT
         ContaResponseDTO conta = contaService.meusDados();
 
-        // ASSERT
         assertThat(conta).isNotNull();
-        assertThat(conta.getTitular()).isEqualTo(contaExistente.getUsuario().getNome());
-
+        assertThat(conta.titular()).isEqualTo(contaExistente.getUsuario().getNome());
     }
 
     @Test
+    @DisplayName("Admin deve desativar conta por ID com sucesso")
     void deveDesativarContaComSucessoAdmin() {
+        contaExistente.setAtiva(true);
 
-        // ARRANGE
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyString(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
-
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByIdWithLock(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
-        contaExistente.setAtiva(false);
-        when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
+        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // ACT
         ContaResponseDTO resultado = contaService.desativar(contaExistente.getId());
 
-        // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getAtiva()).isFalse();
-
+        assertThat(resultado.ativa()).isFalse();
+        verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
+    @DisplayName("Admin deve ativar conta por ID com sucesso")
     void deveAtivarContaComSucessoAdmin() {
+        contaExistente.setAtiva(false);
 
-        // ARRANGE
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyString(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
-
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByIdWithLock(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
-        contaExistente.setAtiva(true);
-        when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
+        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // ACT
         ContaResponseDTO resultado = contaService.ativar(contaExistente.getId());
 
-        // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getAtiva()).isTrue();
-
+        assertThat(resultado.ativa()).isTrue();
+        verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
+    @DisplayName("Deve desativar a própria conta com sucesso")
     void deveDesativarContaComSucesso() {
-        // Arrange
         contaExistente.setAtiva(true);
+
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         ContaResponseDTO resultado = contaService.desativarMinhaConta();
 
-        // Assert
-        assertNotNull(resultado);
-        assertFalse(contaExistente.getAtiva(), "A conta deveria estar desativada (ativa = false)");
-
-        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
-        verify(contaRepository, times(1)).findByUsuarioEmailWithLock(usuarioExistente.getEmail());
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.ativa()).isFalse();
         verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar desativar própria conta inexistente")
     void deveLancarExcecaoAoDesativarContaInexistente() {
-        // Arrange
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.empty());
 
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> contaService.desativarMinhaConta());
+        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conta não encontrada");
 
-        assertEquals("Conta não encontrada", exception.getMessage());
         verify(contaRepository, never()).save(any(Conta.class));
     }
 
     @Test
+    @DisplayName("Deve ativar a própria conta com sucesso")
     void deveAtivarContaComSucesso() {
-        // Arrange
         contaExistente.setAtiva(false);
+
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         ContaResponseDTO resultado = contaService.ativarMinhaConta();
 
-        // Assert
-        assertNotNull(resultado);
-        assertTrue(contaExistente.getAtiva(), "A conta deveria estar ativa (ativa = true)");
-
-        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
-        verify(contaRepository, times(1)).findByUsuarioEmailWithLock(usuarioExistente.getEmail());
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.ativa()).isTrue();
         verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar ativar própria conta inexistente")
     void deveLancarExcecaoAoAtivarContaInexistente() {
-        // Arrange
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.empty());
 
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> contaService.ativarMinhaConta());
+        assertThatThrownBy(() -> contaService.ativarMinhaConta())
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conta não encontrada");
 
-        assertEquals("Conta não encontrada", exception.getMessage());
         verify(contaRepository, never()).save(any(Conta.class));
     }
 }

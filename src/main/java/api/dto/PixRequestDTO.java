@@ -4,17 +4,14 @@ import java.math.BigDecimal;
 import api.validation.ChavePixValida;
 import api.validation.DescricaoPixValida;
 import api.validation.ValorPositivoValido;
-import lombok.Data;
 
-@Data
-public class PixRequestDTO {
+public record PixRequestDTO(
+    @ChavePixValida String chavePix,
+    @ValorPositivoValido BigDecimal valor,
+    @DescricaoPixValida String descricao
+) {
 
-    @ChavePixValida
-    private String chavePix;
-
-    @ValorPositivoValido
-    private BigDecimal valor;
-
-    @DescricaoPixValida
-    private String descricao;
-}
+    public void setValor(BigDecimal bigDecimal) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setValor'");
+    }}

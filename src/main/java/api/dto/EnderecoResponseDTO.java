@@ -1,17 +1,12 @@
 package api.dto;
 
-import lombok.Data;
-
-@Data
-public class EnderecoResponseDTO {
-
-    private Long id;
-    private String logradouro;
-    private String numero;
-    private String complemento;
-    private String bairro;
-    private String cidade;
-    private String uf;
-    private String cep;
-    
-}
+public record EnderecoResponseDTO(
+    Long id,
+    String logradouro,
+    String numero,
+    String complemento,
+    String bairro,
+    String cidade,
+    String uf,
+    String cep
+) {}

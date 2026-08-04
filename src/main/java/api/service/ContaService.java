@@ -19,23 +19,24 @@ import jakarta.transaction.Transactional;
 public class ContaService {
 
     @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     private final ContaRepository contaRepository;
     private final UsuarioAutenticadoService usuarioAutenticadoService;
 
     public ContaService(
             ContaRepository contaRepository,
-            UsuarioAutenticadoService usuarioAutenticadoService) {
+            UsuarioAutenticadoService usuarioAutenticadoService, EntityManager entityManager) {
 
         this.contaRepository = contaRepository;
         this.usuarioAutenticadoService = usuarioAutenticadoService;
+        this.entityManager = entityManager;
     }
 
     @Transactional
     public ContaResponseDTO criar(ContaRequestDTO usuario) {
 
-        boolean possui = contaRepository.existsByUsuarioEmail(usuario.getUsuario().getEmail());
+        boolean possui = contaRepository.existsByUsuarioEmail(usuario.usuario().getEmail());
 
         if (possui) {
             throw new RegraNegocioException("O usuário já possui uma conta");
@@ -43,7 +44,7 @@ public class ContaService {
 
         Conta conta = new Conta();
         conta.setTipoConta(TipoConta.PAGAMENTO);
-        conta.setUsuario(usuario.getUsuario());
+        conta.setUsuario(usuario.usuario());
         conta.setNumeroConta("PENDENTE");
 
         conta = contaRepository.save(conta);
@@ -151,15 +152,9 @@ public class ContaService {
     }
 
     private ContaResponseDTO toDTO(Conta conta) {
-        ContaResponseDTO dto = new ContaResponseDTO();
-        dto.setId(conta.getId());
-        dto.setTitular(conta.getUsuario().getNome());
-        dto.setEmail(conta.getUsuario().getEmail());
-        dto.setNumeroConta(conta.getNumeroConta());
-        dto.setSaldo(conta.getSaldo());
-        dto.setTipoConta(conta.getTipoConta());
-        dto.setAtiva(conta.getAtiva());
-        dto.setDataCriacao(conta.getDataCriacao());
-        return dto;
+        return new ContaResponseDTO(conta.getId(), conta.getUsuario().getNome(),
+                conta.getUsuario().getEmail(), conta.getNumeroConta(), conta.getSaldo(), conta.getTipoConta(),
+                conta.getAtiva(), conta.getDataCriacao());
+
     }
 }

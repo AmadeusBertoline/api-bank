@@ -1,13 +1,8 @@
 package api.dto;
 
 import api.validation.StatusAtivoValido;
-import lombok.Data;
 
-@Data
-public class StatusContaRequestDTO{
-
+public record StatusContaRequestDTO(
     @StatusAtivoValido
-    private Boolean ativa;
-
-}
-
+    Boolean ativa
+) {}

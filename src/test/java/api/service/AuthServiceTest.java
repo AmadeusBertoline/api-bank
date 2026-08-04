@@ -6,9 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import api.dto.EnderecoRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
@@ -54,23 +57,23 @@ public class AuthServiceTest {
     @BeforeEach
     void setup() {
 
-        enderecoRequestDTO = new EnderecoRequestDTO();
-        enderecoRequestDTO.setLogradouro("Avenida Paulista");
-        enderecoRequestDTO.setNumero("1000");
-        enderecoRequestDTO.setComplemento("Apto 42");
-        enderecoRequestDTO.setBairro("Bela Vista");
-        enderecoRequestDTO.setCidade("São Paulo");
-        enderecoRequestDTO.setUf("SP");
-        enderecoRequestDTO.setCep("01310-100");
+        enderecoRequestDTO = new EnderecoRequestDTO(
+                "Avenida Paulista",
+                "1000",
+                "Apto 42",
+                "Bela Vista",
+                "São Paulo",
+                "SP",
+                "01310-100");
 
-        usuarioRequestDTO = new UsuarioRequestDTO();
-        usuarioRequestDTO.setNome("Amadeus Bertoline");
-        usuarioRequestDTO.setEmail("amadeus@email.com");
-        usuarioRequestDTO.setCpf("57561884010");
-        usuarioRequestDTO.setDataNascimento(LocalDate.parse("1998-05-20"));
-        usuarioRequestDTO.setSenha("Senha@123");
-        usuarioRequestDTO.setConfirmarSenha("Senha@123");
-        usuarioRequestDTO.setEndereco(enderecoRequestDTO);
+        usuarioRequestDTO = new UsuarioRequestDTO(
+                "Amadeus Bertoline",
+                "amadeus@email.com",
+                "Senha@123",
+                "Senha@123",
+                "57561884010",
+                LocalDate.parse("1998-05-20"),
+                enderecoRequestDTO);
 
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
@@ -95,9 +98,7 @@ public class AuthServiceTest {
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
 
-        loginRequestDTO = new LoginRequestDTO();
-        loginRequestDTO.setEmail(usuarioExistente.getEmail());
-        loginRequestDTO.setSenha("Senha@123");
+        loginRequestDTO = new LoginRequestDTO(usuarioExistente.getEmail(), "Senha@123");
 
     }
 
@@ -121,7 +122,6 @@ public class AuthServiceTest {
         when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
 
         // ACT + ASSERT
-
         assertThatThrownBy(() -> authService.registrarUsuario(usuarioRequestDTO, usuarioExistente.getRole()))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("Email já cadastrado");
@@ -135,7 +135,6 @@ public class AuthServiceTest {
         when(usuarioRepository.findByCpf(usuarioExistente.getCpf())).thenReturn(Optional.of(usuarioExistente));
 
         // ACT + ASSERT
-
         assertThatThrownBy(() -> authService.registrarUsuario(usuarioRequestDTO, usuarioExistente.getRole()))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("CPF já cadastrado");
@@ -146,10 +145,17 @@ public class AuthServiceTest {
     void deveLancarExceptionSenhasDiferentes() {
 
         // ARRANGE
-        usuarioRequestDTO.setConfirmarSenha("batata");
+        UsuarioRequestDTO dtoSenhasDiferentes = new UsuarioRequestDTO(
+                usuarioRequestDTO.nome(),
+                usuarioRequestDTO.email(),
+                usuarioRequestDTO.senha(),
+                "batata",
+                usuarioRequestDTO.cpf(),
+                usuarioRequestDTO.dataNascimento(),
+                usuarioRequestDTO.endereco());
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> authService.registrarUsuario(usuarioRequestDTO, usuarioExistente.getRole()))
+        assertThatThrownBy(() -> authService.registrarUsuario(dtoSenhasDiferentes, usuarioExistente.getRole()))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessageContaining("As senhas devem ser iguais");
 
@@ -161,16 +167,17 @@ public class AuthServiceTest {
         // ARRANGE
         String token = "token_simulado123@";
         when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
-        when(jwtService.gerarToken(usuarioExistente.getId(), usuarioExistente.getEmail(), usuarioExistente.getRole())).thenReturn(token);
-        when(passwordEncoder.matches(loginRequestDTO.getSenha(), usuarioExistente.getSenha())).thenReturn(true);
+        when(jwtService.gerarToken(usuarioExistente.getId(), usuarioExistente.getEmail(), usuarioExistente.getRole()))
+                .thenReturn(token);
+        when(passwordEncoder.matches(loginRequestDTO.senha(), usuarioExistente.getSenha())).thenReturn(true);
 
         // ACT
         LoginResponseDTO resultado = authService.login(loginRequestDTO);
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getToken()).isEqualTo(token);
-        assertThat(resultado.getTipo()).isEqualTo("Bearer");
+        assertThat(resultado.token()).isEqualTo(token);
+        assertThat(resultado.tipo()).isEqualTo("Bearer");
 
     }
 
@@ -178,11 +185,11 @@ public class AuthServiceTest {
     void deveLancarExceptionEmailIncorreto() {
 
         // ARRANGE
-        loginRequestDTO.setEmail("emailfakeerrado@email.com");
-        when(usuarioRepository.findByEmail(loginRequestDTO.getEmail())).thenReturn(Optional.empty());
+        LoginRequestDTO loginEmailIncorreto = new LoginRequestDTO("emailfakeerrado@email.com", loginRequestDTO.senha());
+        when(usuarioRepository.findByEmail(loginEmailIncorreto.email())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> authService.login(loginRequestDTO))
+        assertThatThrownBy(() -> authService.login(loginEmailIncorreto))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Email ou senha inválidos");
 
@@ -194,12 +201,12 @@ public class AuthServiceTest {
     void deveLancarExcecaoSenhaIncorreta() {
 
         // ARRANGE
-        loginRequestDTO.setSenha("senhamuitoerradanadaaver");
-        when(usuarioRepository.findByEmail(loginRequestDTO.getEmail())).thenReturn(Optional.of(usuarioExistente));
-        when(passwordEncoder.matches(loginRequestDTO.getSenha(), usuarioExistente.getSenha())).thenReturn(false);
+        LoginRequestDTO loginSenhaIncorreta = new LoginRequestDTO(loginRequestDTO.email(), "senhamuitoerradanadaaver");
+        when(usuarioRepository.findByEmail(loginSenhaIncorreta.email())).thenReturn(Optional.of(usuarioExistente));
+        when(passwordEncoder.matches(loginSenhaIncorreta.senha(), usuarioExistente.getSenha())).thenReturn(false);
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> authService.login(loginRequestDTO))
+        assertThatThrownBy(() -> authService.login(loginSenhaIncorreta))
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Email ou senha inválidos");
 

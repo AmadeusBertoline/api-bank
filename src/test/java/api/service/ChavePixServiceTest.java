@@ -100,8 +100,7 @@ public class ChavePixServiceTest {
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
-        chavePixRequestDTO = new ChavePixRequestDTO();
-        chavePixRequestDTO.setChave(usuarioExistente.getCpf());
+        chavePixRequestDTO = new ChavePixRequestDTO(usuarioExistente.getCpf());
 
         chavePix = new ChavePix();
         chavePix.setId(1L);
@@ -155,7 +154,7 @@ public class ChavePixServiceTest {
     void deveCriarChavePixComSucesso() {
 
         // ARRANGE
-        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
+        when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.empty());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(chavePixRepository.save(any(ChavePix.class))).thenReturn(chavePix);
@@ -165,8 +164,8 @@ public class ChavePixServiceTest {
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getChave()).isEqualTo(chavePixRequestDTO.getChave());
-        assertThat(resultado.getContaId()).isEqualByComparingTo(contaExistente.getId());
+        assertThat(resultado.chave()).isEqualTo(chavePixRequestDTO.chave());
+        assertThat(resultado.contaId()).isEqualByComparingTo(contaExistente.getId());
 
     }
 
@@ -174,8 +173,8 @@ public class ChavePixServiceTest {
     void deveLancarExcecaoChavePixJaCadastrada() {
 
         // ARRANGE
-        chavePixRequestDTO.setChave("57561884010");
-        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.of(chavePix));
+        chavePixRequestDTO = new ChavePixRequestDTO("57561884010");
+        when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.of(chavePix));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.cadastrar(chavePixRequestDTO))
@@ -189,7 +188,7 @@ public class ChavePixServiceTest {
 
         // ARRANGE
         contaExistente.setUsuario(null);
-        when(chavePixRepository.findByChave(chavePixRequestDTO.getChave())).thenReturn(Optional.empty());
+        when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.empty());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
@@ -216,8 +215,8 @@ public class ChavePixServiceTest {
         // ASSERT
         assertThat(resultado).isNotEmpty();
         assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getChave()).isEqualTo(chavePix.getChave());
-        assertThat(resultado.get(0).getTipo()).isEqualTo(chavePix.getTipo());
+        assertThat(resultado.get(0).chave()).isEqualTo(chavePix.getChave());
+        assertThat(resultado.get(0).tipo()).isEqualTo(chavePix.getTipo());
 
     }
 
@@ -256,7 +255,7 @@ public class ChavePixServiceTest {
     void excecaoAoNaoAcharChave() {
 
         // ARRANGE
-        when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());        
+        when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.deletar(99L))

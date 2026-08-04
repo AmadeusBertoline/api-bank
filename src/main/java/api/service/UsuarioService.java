@@ -28,12 +28,12 @@ public class UsuarioService {
 
         Usuario logado = usuarioAutenticadoService.getUsuarioLogado();
 
-        if (!logado.getEmail().equalsIgnoreCase(dto.getEmail())) {
-            if (usuarioRepository.existsByEmail(dto.getEmail())) {
+        if (!logado.getEmail().equalsIgnoreCase(dto.email())) {
+            if (usuarioRepository.existsByEmail(dto.email())) {
                 throw new RegraNegocioException("Esse e-mail já pertence a outro usuário");
             }
 
-            logado.setEmail(dto.getEmail());
+            logado.setEmail(dto.email());
 
         }
 
@@ -53,19 +53,9 @@ public class UsuarioService {
             return null;
         }
 
-        UsuarioResponseDTO dto = new UsuarioResponseDTO();
-        dto.setId(usuario.getId());
-        dto.setNome(usuario.getNome());
-        dto.setEmail(usuario.getEmail());
-        dto.setCpf(usuario.getCpf());
-        dto.setDataNascimento(usuario.getDataNascimento());
-        dto.setRole(usuario.getRole());
-        dto.setDataCriacao(usuario.getDataCriacao());
-
-        dto.setEndereco(enderecoService.toDTO(usuario.getEndereco()));
-
-        return dto;
-
+        return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getEmail(), usuario.getCpf(),
+                usuario.getDataNascimento(), usuario.getRole(), usuario.getDataCriacao(),
+                enderecoService.toDTO(usuario.getEndereco()));
     }
 
 }

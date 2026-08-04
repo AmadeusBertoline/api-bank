@@ -35,13 +35,13 @@ public class EnderecoService {
             throw new RegraNegocioException("Um usuário só pode alterar o próprio endereço");
         }
 
-        endereco.setBairro(dto.getBairro());
-        endereco.setCep(dto.getCep());
-        endereco.setCidade(dto.getCidade());
-        endereco.setComplemento(dto.getComplemento());
-        endereco.setLogradouro(dto.getLogradouro());
-        endereco.setNumero(dto.getNumero());
-        endereco.setUf(dto.getUf());
+        endereco.setBairro(dto.bairro());
+        endereco.setCep(dto.cep());
+        endereco.setCidade(dto.cidade());
+        endereco.setComplemento(dto.complemento());
+        endereco.setLogradouro(dto.logradouro());
+        endereco.setNumero(dto.numero());
+        endereco.setUf(dto.uf());
 
         Endereco salvo = enderecoRepository.save(endereco);
 
@@ -54,16 +54,9 @@ public class EnderecoService {
             return null;
         }
 
-        EnderecoResponseDTO dto = new EnderecoResponseDTO();
-        dto.setId(endereco.getId());
-        dto.setLogradouro(endereco.getLogradouro());
-        dto.setNumero(endereco.getNumero());
-        dto.setComplemento(endereco.getComplemento());
-        dto.setBairro(endereco.getBairro());
-        dto.setCidade(endereco.getCidade());
-        dto.setUf(endereco.getUf());
-        dto.setCep(endereco.getCep());
+        return new EnderecoResponseDTO(endereco.getId(), endereco.getLogradouro(),
+                endereco.getNumero(), endereco.getComplemento(), endereco.getBairro(), endereco.getCidade(),
+                endereco.getUf(), endereco.getCep());
 
-        return dto;
     }
 }

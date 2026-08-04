@@ -7,15 +7,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
 import api.enums.TipoRole;
@@ -25,7 +29,7 @@ import api.model.Usuario;
 import api.repository.EnderecoRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class EnderecoServiceTest {
+class EnderecoServiceTest {
 
     @Mock
     private EnderecoRepository enderecoRepository;
@@ -45,15 +49,16 @@ public class EnderecoServiceTest {
 
     @BeforeEach
     void setup() {
-
-        enderecoRequestDTO = new EnderecoRequestDTO();
-        enderecoRequestDTO.setLogradouro("Avenida Paulista");
-        enderecoRequestDTO.setNumero("1000");
-        enderecoRequestDTO.setComplemento("Apto 42");
-        enderecoRequestDTO.setBairro("Bela Vista");
-        enderecoRequestDTO.setCidade("São Paulo");
-        enderecoRequestDTO.setUf("SP");
-        enderecoRequestDTO.setCep("01310-100");
+        // Instanciação direta via construtor do Record
+        enderecoRequestDTO = new EnderecoRequestDTO(
+            "Avenida Paulista",
+            "1000",
+            "Apto 42",
+            "Bela Vista",
+            "São Paulo",
+            "SP",
+            "01310-100"
+        );
 
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
@@ -100,12 +105,11 @@ public class EnderecoServiceTest {
 
         usuarioDestino.setEndereco(enderecoDestino);
         enderecoDestino.setUsuario(usuarioDestino);
-
     }
 
     @Test
+    @DisplayName("Deve atualizar endereço com sucesso")
     void deveAtualizarEnderecoComSucesso() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(enderecoRepository.findById(enderecoExistente.getId())).thenReturn(Optional.of(enderecoExistente));
@@ -116,16 +120,15 @@ public class EnderecoServiceTest {
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getCep()).isEqualTo(enderecoRequestDTO.getCep());
-        assertThat(resultado.getId()).isEqualTo(enderecoExistente.getId());
+        assertThat(resultado.cep()).isEqualTo(enderecoRequestDTO.cep());
+        assertThat(resultado.id()).isEqualTo(enderecoExistente.getId());
 
         verify(enderecoRepository, times(1)).save(any(Endereco.class));
-
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao não encontrar usuário logado ao atualizar endereço")
     void excecaoAoNaoEncontrarUsuarioLogadoAoAtualizarEndereco() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado())
                 .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
@@ -136,12 +139,11 @@ public class EnderecoServiceTest {
                 .hasMessage("Usuário inexistente");
 
         verify(enderecoRepository, never()).save(any());
-
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando endereço não for encontrado ao atualizar")
     void excecaoEnderecoNaoEncontradoAoAtualizar() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(enderecoRepository.findById(usuarioExistente.getEndereco().getId())).thenReturn(Optional.empty());
@@ -152,7 +154,5 @@ public class EnderecoServiceTest {
                 .hasMessage("Endereço não encontrado de id " + usuarioExistente.getEndereco().getId());
 
         verify(enderecoRepository, never()).save(any());
-
     }
-
 }

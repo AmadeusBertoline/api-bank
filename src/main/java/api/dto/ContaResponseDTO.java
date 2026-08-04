@@ -2,20 +2,15 @@ package api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import api.enums.TipoConta;
-import lombok.Data;
 
-@Data
-public class ContaResponseDTO {
-    
-    private Long id;
-    private String titular;
-    private String email;
-    private String numeroConta;
-    private BigDecimal saldo;
-    private TipoConta tipoConta;
-    private Boolean ativa;
-    private LocalDateTime dataCriacao;
-
-}
+public record ContaResponseDTO(
+    Long id,
+    String titular,
+    String email,
+    String numeroConta,
+    BigDecimal saldo,
+    TipoConta tipoConta,
+    Boolean ativa,
+    LocalDateTime dataCriacao
+) {}

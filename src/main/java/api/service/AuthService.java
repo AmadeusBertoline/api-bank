@@ -37,36 +37,36 @@ public class AuthService {
     @Transactional
     public String registrarUsuario(UsuarioRequestDTO dto, TipoRole role) {
 
-        if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RegraNegocioException("Email já cadastrado: " + dto.getEmail());
+        if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
+            throw new RegraNegocioException("Email já cadastrado: " + dto.email());
         }
 
-        if (usuarioRepository.findByCpf(dto.getCpf()).isPresent()) {
-            throw new RegraNegocioException("CPF já cadastrado: " + dto.getCpf());
+        if (usuarioRepository.findByCpf(dto.cpf()).isPresent()) {
+            throw new RegraNegocioException("CPF já cadastrado: " + dto.cpf());
         }
 
-        if (!dto.getSenha().equals(dto.getConfirmarSenha())) {
+        if (!dto.senha().equals(dto.confirmarSenha())) {
             throw new RegraNegocioException("As senhas devem ser iguais");
         }
 
         Endereco endereco = new Endereco();
-        endereco.setLogradouro(dto.getEndereco().getLogradouro());
-        endereco.setNumero(dto.getEndereco().getNumero());
-        endereco.setComplemento(dto.getEndereco().getComplemento());
-        endereco.setBairro(dto.getEndereco().getBairro());
-        endereco.setCidade(dto.getEndereco().getCidade());
-        endereco.setUf(dto.getEndereco().getUf());
-        endereco.setCep(dto.getEndereco().getCep());
+        endereco.setLogradouro(dto.endereco().logradouro());
+        endereco.setNumero(dto.endereco().numero());
+        endereco.setComplemento(dto.endereco().complemento());
+        endereco.setBairro(dto.endereco().bairro());
+        endereco.setCidade(dto.endereco().cidade());
+        endereco.setUf(dto.endereco().uf());
+        endereco.setCep(dto.endereco().cep());
 
         Usuario usuario = new Usuario();
 
         usuario.setRole(role);
 
-        usuario.setNome(dto.getNome());
-        usuario.setEmail(dto.getEmail());
-        usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-        usuario.setCpf(dto.getCpf());
-        usuario.setDataNascimento(dto.getDataNascimento());
+        usuario.setNome(dto.nome());
+        usuario.setEmail(dto.email());
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuario.setCpf(dto.cpf());
+        usuario.setDataNascimento(dto.dataNascimento());
         usuario.setEndereco(endereco);
 
         endereco.setUsuario(usuario);
@@ -74,8 +74,7 @@ public class AuthService {
         usuarioRepository.save(usuario);
 
         if (role.equals(TipoRole.ROLE_USUARIO)) {
-            ContaRequestDTO contaRequestDTO = new ContaRequestDTO();
-            contaRequestDTO.setUsuario(usuario);
+            ContaRequestDTO contaRequestDTO = new ContaRequestDTO(usuario);
             contaService.criar(contaRequestDTO);
         }
 
@@ -84,10 +83,10 @@ public class AuthService {
     }
 
     public LoginResponseDTO login(LoginRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findByEmail(dto.getEmail())
+        Usuario usuario = usuarioRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new RegraNegocioException("Email ou senha inválidos"));
 
-        if (!passwordEncoder.matches(dto.getSenha(), usuario.getSenha())) {
+        if (!passwordEncoder.matches(dto.senha(), usuario.getSenha())) {
             throw new RegraNegocioException("Email ou senha inválidos");
         }
 

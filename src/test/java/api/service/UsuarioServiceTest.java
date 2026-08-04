@@ -4,13 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +31,7 @@ import api.model.Usuario;
 import api.repository.UsuarioRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class UsuarioServiceTest {
+class UsuarioServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
@@ -71,11 +74,19 @@ public class UsuarioServiceTest {
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
 
-        enderecoResponseDTO = new EnderecoResponseDTO();
-        enderecoResponseDTO.setLogradouro("Avenida Paulista");
+        // INSTANCIAÇÃO DO RECORD
+        enderecoResponseDTO = new EnderecoResponseDTO(1L,
+                "Avenida Paulista",
+                "1000",
+                "Apto 42",
+                "Bela Vista",
+                "São Paulo",
+                "SP",
+                "01310-100");
     }
 
     @Test
+    @DisplayName("Deve retornar os dados do usuário logado com sucesso")
     void deveRetornarMeusDados() {
 
         // ARRANGE
@@ -87,17 +98,17 @@ public class UsuarioServiceTest {
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        assertThat(resultado.getNome()).isEqualTo("Amadeus Bertoline");
-        assertThat(resultado.getEmail()).isEqualTo("amadeus@email.com");
-        assertThat(resultado.getEndereco()).isNotNull();
-        assertThat(resultado.getEndereco().getLogradouro()).isEqualTo("Avenida Paulista");
+        assertThat(resultado.nome()).isEqualTo("Amadeus Bertoline");
+        assertThat(resultado.email()).isEqualTo("amadeus@email.com");
+        assertThat(resultado.endereco()).isNotNull();
+        assertThat(resultado.endereco().logradouro()).isEqualTo("Avenida Paulista");
 
-        verify(usuarioAutenticadoService).getUsuarioLogado();
-        verify(enderecoService).toDTO(usuarioExistente.getEndereco());
-
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(enderecoService, times(1)).toDTO(usuarioExistente.getEndereco());
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao buscar meus dados quando usuário não for encontrado")
     void deveLancarExcecaoAoBuscarMeusDadosQuandoUsuarioNaoEncontrado() {
 
         // ARRANGE
@@ -109,12 +120,12 @@ public class UsuarioServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Usuário inexistente");
 
-        verify(usuarioAutenticadoService).getUsuarioLogado();
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
         verify(enderecoService, never()).toDTO(any());
-
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao buscar meus dados quando ocorrer erro no mapeamento de endereço")
     void deveLancarExcecaoAoBuscarMeusDadosQuandoErroNoMapeamentoDoEndereco() {
 
         // ARRANGE
@@ -127,39 +138,43 @@ public class UsuarioServiceTest {
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Erro ao converter endereço do usuário");
 
-        verify(usuarioAutenticadoService).getUsuarioLogado();
-        verify(enderecoService).toDTO(usuarioExistente.getEndereco());
-
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(enderecoService, times(1)).toDTO(usuarioExistente.getEndereco());
     }
 
     @Test
+    @DisplayName("Deve atualizar o e-mail do usuário logado com sucesso")
     void deveAtualizarEmailComSucesso() {
 
         // ARRANGE
-        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO();
-        dto.setEmail("novo.email@email.com");
+        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO("novo.email@email.com");
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(usuarioRepository.existsByEmail("novo.email@email.com")).thenReturn(false);
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioExistente);
+        when(usuarioRepository.existsByEmail(dto.email())).thenReturn(false);
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(enderecoService.toDTO(enderecoExistente)).thenReturn(enderecoResponseDTO);
 
         // ACT
         UsuarioResponseDTO resultado = usuarioService.atualizarEmail(dto);
 
         // ASSERT
         assertThat(resultado).isNotNull();
-        verify(usuarioRepository).save(usuarioExistente);
+        assertThat(usuarioExistente.getEmail()).isEqualTo(dto.email());
+
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(usuarioRepository, times(1)).existsByEmail(dto.email());
+        verify(usuarioRepository, times(1)).save(usuarioExistente);
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao atualizar e-mail quando o e-mail já estiver em uso")
     void deveLancarExcecaoQuandoEmailJaEstiverEmUso() {
 
         // ARRANGE
-        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO();
-        dto.setEmail("outro.usuario@email.com");
+        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO("outro.usuario@email.com");
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(usuarioRepository.existsByEmail("outro.usuario@email.com")).thenReturn(true);
+        when(usuarioRepository.existsByEmail(dto.email())).thenReturn(true);
 
         // ACT + ASSERT
         assertThatThrownBy(() -> usuarioService.atualizarEmail(dto))

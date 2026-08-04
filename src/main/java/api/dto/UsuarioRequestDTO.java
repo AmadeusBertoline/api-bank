@@ -7,28 +7,13 @@ import api.validation.EnderecoValido;
 import api.validation.NomeValido;
 import api.validation.PeloMenos16Anos;
 import api.validation.SenhaValida;
-import lombok.Data;
 
-@Data
-public class UsuarioRequestDTO {
-    @NomeValido
-    private String nome;
-
-    @EmailValido
-    private String email;
-
-    @SenhaValida
-    private String senha;
-
-    @SenhaValida
-    private String confirmarSenha;
-
-    @CpfValido
-    private String cpf;
-
-    @PeloMenos16Anos
-    private LocalDate dataNascimento;
-
-    @EnderecoValido
-    private EnderecoRequestDTO endereco;
+public record UsuarioRequestDTO(
+        @NomeValido String nome,
+        @EmailValido String email,
+        @SenhaValida String senha,
+        @SenhaValida String confirmarSenha,
+        @CpfValido String cpf,
+        @PeloMenos16Anos LocalDate dataNascimento,
+        @EnderecoValido EnderecoRequestDTO endereco) {
 }
