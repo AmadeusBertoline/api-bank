@@ -2,7 +2,6 @@ package api.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
@@ -19,14 +18,19 @@ import jakarta.transaction.Transactional;
 @Service
 public class ChavePixService {
 
-    @Autowired
-    private ChavePixRepository chavePixRepository;
+    private final ChavePixRepository chavePixRepository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
+    private final ContaRepository contaRepository;
 
-    @Autowired
-    private UsuarioAutenticadoService usuarioAutenticadoService;
+    public ChavePixService(
+            ChavePixRepository chavePixRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService,
+            ContaRepository contaRepository) {
 
-    @Autowired
-    private ContaRepository contaRepository;
+        this.chavePixRepository = chavePixRepository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
+        this.contaRepository = contaRepository;
+    };
 
     @Transactional
     public ChavePixResponseDTO cadastrar(ChavePixRequestDTO dto) {

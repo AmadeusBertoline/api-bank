@@ -27,20 +27,25 @@ import jakarta.transaction.Transactional;
 @Service
 public class TransacaoService {
 
-    @Autowired
-    private TransacaoRepository transacaoRepository;
+    private final TransacaoRepository transacaoRepository;
+    private final PixRepository pixRepository;
+    private final ContaRepository contaRepository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
+    private final ChavePixRepository chavePixRepository;
 
-    @Autowired
-    private PixRepository pixRepository;
+    public TransacaoService(
+            TransacaoRepository transacaoRepository,
+            PixRepository pixRepository,
+            ContaRepository contaRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService,
+            ChavePixRepository chavePixRepository) {
 
-    @Autowired
-    private ContaRepository contaRepository;
-
-    @Autowired
-    private UsuarioAutenticadoService usuarioAutenticadoService;
-
-    @Autowired
-    private ChavePixRepository chavePixRepository;
+        this.transacaoRepository = transacaoRepository;
+        this.pixRepository = pixRepository;
+        this.contaRepository = contaRepository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
+        this.chavePixRepository = chavePixRepository;
+    }
 
     @Transactional
     public TransacaoResponseDTO pix(PixRequestDTO dto) {
@@ -53,7 +58,7 @@ public class TransacaoService {
 
         Conta destinoTemp = contaRepository.findByChavesPix(dto.getChavePix())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Conta destino não encontrada de id  verifique se essa chave pix está cadastrada"));
+                        "Conta destino não encontrada, verifique se essa chave pix está cadastrada"));
 
         if (origemTemp.getId().equals(destinoTemp.getId())) {
             throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");

@@ -1,8 +1,6 @@
 package api.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
 import api.exception.RegraNegocioException;
@@ -14,18 +12,24 @@ import api.repository.EnderecoRepository;
 @Service
 public class EnderecoService {
 
-    @Autowired
-    private EnderecoRepository enderecoRepository;
+    private final EnderecoRepository enderecoRepository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
 
-    @Autowired
-    private UsuarioAutenticadoService usuarioAutenticadoService;
+    public EnderecoService(
+            EnderecoRepository enderecoRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService) {
+
+        this.enderecoRepository = enderecoRepository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
+    }
 
     public EnderecoResponseDTO atualizar(EnderecoRequestDTO dto) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
         Endereco endereco = enderecoRepository.findById(usuario.getEndereco().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado de id " + usuario.getEndereco().getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Endereço não encontrado de id " + usuario.getEndereco().getId()));
 
         if (!usuario.getId().equals(endereco.getUsuario().getId())) {
             throw new RegraNegocioException("Um usuário só pode alterar o próprio endereço");

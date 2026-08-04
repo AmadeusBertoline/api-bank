@@ -1,6 +1,5 @@
 package api.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
@@ -11,14 +10,19 @@ import api.repository.UsuarioRepository;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioAutenticadoService usuarioAutenticadoService;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
+    private final EnderecoService enderecoService;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private EnderecoService enderecoService;
+    public UsuarioService(
+            UsuarioAutenticadoService usuarioAutenticadoService,
+            EnderecoService enderecoService,
+            UsuarioRepository usuarioRepository) {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
+        this.enderecoService = enderecoService;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     public UsuarioResponseDTO atualizarEmail(UsuarioAtualizaEmailRequestDTO dto) {
 

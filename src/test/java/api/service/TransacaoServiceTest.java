@@ -329,7 +329,7 @@ class TransacaoServiceTest {
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Conta destino não encontrada de id " + usuarioExistente.getId());
+                .hasMessageContaining("Conta destino não encontrada, verifique se essa chave pix está cadastrada");
 
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());

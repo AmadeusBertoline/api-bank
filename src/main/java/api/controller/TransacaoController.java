@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.service.TransacaoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -36,14 +38,14 @@ public class TransacaoController {
 
     }
 
-    @Operation(summary = "extrato da conta", description = "Lista todas as transações da conta, da mais recente para a mais antiga")
+    @PageableAsQueryParam
+    @Operation(summary = "Extrato da conta", description = "Lista todas as transações da conta, da mais recente para a mais antiga")
     @GetMapping("/extrato")
     public ResponseEntity<Page<TransacaoResponseDTO>> listarPorConta(
-            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
+            @Parameter(hidden = true) @PageableDefault(page = 0, size = 10, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<TransacaoResponseDTO> transacoes = transacaoService.listarPorConta(pageable);
         return ResponseEntity.ok(transacoes);
-
     }
 
 }

@@ -17,7 +17,7 @@ import api.service.ChavePixService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(name = "chaves pix")
+@Tag(name = "Chaves Pix")
 @RestController
 @RequestMapping("/chaves")
 public class ChavePixController {

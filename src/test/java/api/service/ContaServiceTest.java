@@ -1,8 +1,14 @@
 package api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,17 +20,23 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
@@ -126,15 +138,18 @@ class ContaServiceTest {
     void deveListarTodasAsContas() {
 
         // ARRANGE
-        when(contaRepository.findAll()).thenReturn(List.of(contaExistente));
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
+
+        Page<Conta> pageMock = new PageImpl<>(List.of(contaExistente), pageable, 1);
+
+        when(contaRepository.findAll(pageable)).thenReturn(pageMock);
 
         // ACT
-        List<ContaResponseDTO> resultado = contaService.listarTodas();
+        Page<ContaResponseDTO> resultado = contaService.listarTodas(pageable);
 
         // ASSERT
-        assertThat(resultado).hasSize(1);
-        assertThat(resultado.get(0).getTitular()).isEqualTo("Amadeus Bertoline");
-
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getContent().get(0).getTitular()).isEqualTo("Amadeus Bertoline");
     }
 
     @Test
@@ -154,7 +169,7 @@ class ContaServiceTest {
     }
 
     @Test
-    void deveDesativarContaComSucesso() {
+    void deveDesativarContaComSucessoAdmin() {
 
         // ARRANGE
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
@@ -176,7 +191,7 @@ class ContaServiceTest {
     }
 
     @Test
-    void deveAtivarContaComSucesso() {
+    void deveAtivarContaComSucessoAdmin() {
 
         // ARRANGE
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
@@ -197,4 +212,77 @@ class ContaServiceTest {
 
     }
 
+    @Test
+    void deveDesativarContaComSucesso() {
+        // Arrange
+        contaExistente.setAtiva(true);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
+                .thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        ContaResponseDTO resultado = contaService.desativarMinhaConta();
+
+        // Assert
+        assertNotNull(resultado);
+        assertFalse(contaExistente.getAtiva(), "A conta deveria estar desativada (ativa = false)");
+
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(contaRepository, times(1)).findByUsuarioEmailWithLock(usuarioExistente.getEmail());
+        verify(contaRepository, times(1)).save(contaExistente);
+    }
+
+    @Test
+    void deveLancarExcecaoAoDesativarContaInexistente() {
+        // Arrange
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> contaService.desativarMinhaConta());
+
+        assertEquals("Conta não encontrada", exception.getMessage());
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
+
+    @Test
+    void deveAtivarContaComSucesso() {
+        // Arrange
+        contaExistente.setAtiva(false);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
+                .thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        ContaResponseDTO resultado = contaService.ativarMinhaConta();
+
+        // Assert
+        assertNotNull(resultado);
+        assertTrue(contaExistente.getAtiva(), "A conta deveria estar ativa (ativa = true)");
+
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(contaRepository, times(1)).findByUsuarioEmailWithLock(usuarioExistente.getEmail());
+        verify(contaRepository, times(1)).save(contaExistente);
+    }
+
+    @Test
+    void deveLancarExcecaoAoAtivarContaInexistente() {
+        // Arrange
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> contaService.ativarMinhaConta());
+
+        assertEquals("Conta não encontrada", exception.getMessage());
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
 }

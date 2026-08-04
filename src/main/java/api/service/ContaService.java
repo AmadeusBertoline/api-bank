@@ -3,6 +3,8 @@ package api.service;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import api.dto.ContaRequestDTO;
@@ -23,11 +25,16 @@ public class ContaService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Autowired
-    private ContaRepository contaRepository;
+    private final ContaRepository contaRepository;
+    private final UsuarioAutenticadoService usuarioAutenticadoService;
 
-    @Autowired
-    private UsuarioAutenticadoService usuarioAutenticadoService;
+    public ContaService(
+            ContaRepository contaRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService) {
+
+        this.contaRepository = contaRepository;
+        this.usuarioAutenticadoService = usuarioAutenticadoService;
+    }
 
     @Transactional
     public ContaResponseDTO criar(ContaRequestDTO usuario) {
@@ -51,12 +58,9 @@ public class ContaService {
         return toDTO(conta);
     }
 
-    public List<ContaResponseDTO> listarTodas() {
+    public Page<ContaResponseDTO> listarTodas(Pageable pageable) {
 
-        return contaRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return contaRepository.findAll(pageable).map(this::toDTO);
 
     }
 
@@ -66,6 +70,38 @@ public class ContaService {
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
+
+        return toDTO(conta);
+
+    }
+
+    @Transactional
+    public ContaResponseDTO desativarMinhaConta() {
+
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        Conta conta = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
+
+        conta.setAtiva(false);
+
+        contaRepository.save(conta);
+
+        return toDTO(conta);
+
+    }
+
+    @Transactional
+    public ContaResponseDTO ativarMinhaConta() {
+
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        Conta conta = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
+
+        conta.setAtiva(true);
+
+        contaRepository.save(conta);
 
         return toDTO(conta);
 

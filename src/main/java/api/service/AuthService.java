@@ -11,24 +11,28 @@ import api.model.Usuario;
 import api.repository.UsuarioRepository;
 import api.security.JwtService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final ContaService contaService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthService(
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            ContaService contaService) {
 
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private ContaService contaService;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.contaService = contaService;
+    }
 
     @Transactional
     public String registrarUsuario(UsuarioRequestDTO dto, TipoRole role) {
