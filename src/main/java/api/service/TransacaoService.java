@@ -50,7 +50,8 @@ public class TransacaoService {
 
         Conta contaDestino = contaRepository.findByChavesPix(dto.getChavePix())
                 .orElseThrow(
-                        () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()));
+                        () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()
+                                + " verifique se essa chave pix está cadastrada"));
 
         ChavePix chavePix = chavePixRepository.findByChave(dto.getChavePix())
                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada"));

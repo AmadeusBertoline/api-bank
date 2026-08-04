@@ -20,12 +20,12 @@ public class EnderecoService {
     @Autowired
     private UsuarioAutenticadoService usuarioAutenticadoService;
 
-    public EnderecoResponseDTO atualizar(Long id, EnderecoRequestDTO dto) {
+    public EnderecoResponseDTO atualizar(EnderecoRequestDTO dto) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-        Endereco endereco = enderecoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado de id " + id));
+        Endereco endereco = enderecoRepository.findById(usuario.getEndereco().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado de id " + usuario.getEndereco().getId()));
 
         if (!usuario.getId().equals(endereco.getUsuario().getId())) {
             throw new RegraNegocioException("Um usuário só pode alterar o próprio endereço");

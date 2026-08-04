@@ -256,8 +256,7 @@ public class ChavePixServiceTest {
     void excecaoAoNaoAcharChave() {
 
         // ARRANGE
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());
+        when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());        
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.deletar(99L))

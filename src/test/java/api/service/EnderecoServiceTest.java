@@ -116,7 +116,7 @@ public class EnderecoServiceTest {
         when(enderecoRepository.save(any(Endereco.class))).thenReturn(enderecoExistente);
 
         // ACT
-        EnderecoResponseDTO resultado = enderecoService.atualizar(enderecoExistente.getId(), enderecoRequestDTO);
+        EnderecoResponseDTO resultado = enderecoService.atualizar(enderecoRequestDTO);
 
         // ASSERT
         assertThat(resultado).isNotNull();
@@ -134,7 +134,7 @@ public class EnderecoServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> enderecoService.atualizar(enderecoExistente.getId(), enderecoRequestDTO))
+        assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Usuário inexistente");
 
@@ -147,31 +147,16 @@ public class EnderecoServiceTest {
 
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(enderecoRepository.findById(2L)).thenReturn(Optional.empty());
+        when(enderecoRepository.findById(usuarioExistente.getEndereco().getId())).thenReturn(Optional.empty());
 
         // ACT + ASSERT
-        assertThatThrownBy(() -> enderecoService.atualizar(2L, enderecoRequestDTO))
+        assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Endereço não encontrado de id " + 2L);
+                .hasMessage("Endereço não encontrado de id " + usuarioExistente.getEndereco().getId());
 
         verify(enderecoRepository, never()).save(any());
 
     }
 
-    @Test
-    void excecaoNaoPodeAlterarEnderecoDeTerceiros() {
-
-        // ARRANGE
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioDestino);
-        when(enderecoRepository.findById(enderecoExistente.getId())).thenReturn(Optional.of(enderecoExistente));
-
-        // ACT + ASSERT
-        assertThatThrownBy(() -> enderecoService.atualizar(1L, enderecoRequestDTO))
-                .isInstanceOf(RegraNegocioException.class)
-                .hasMessage("Um usuário só pode alterar o próprio endereço");
-
-        verify(enderecoRepository, never()).save(any());
-
-    }
 
 }
