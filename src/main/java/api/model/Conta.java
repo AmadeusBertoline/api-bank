@@ -46,10 +46,14 @@ public class Conta {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
+    @Column
+    private BigDecimal limiteDiarioPix;
+
     @PrePersist
     public void prePersist() {
         this.dataCriacao = LocalDateTime.now();
         this.ativa = true;
+        this.limiteDiarioPix = new BigDecimal("500.00");
         if (this.saldo == null) {
             this.saldo = BigDecimal.ZERO;
         }

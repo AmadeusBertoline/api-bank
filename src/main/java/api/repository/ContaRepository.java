@@ -19,7 +19,7 @@ public interface ContaRepository extends JpaRepository<Conta, Long> {
     Optional<Conta> findByUsuarioEmail(String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Conta c WHERE c.email = :email")
+    @Query("SELECT c FROM Conta c WHERE c.usuario.email = :email")
     Optional<Conta> findByUsuarioEmailWithLock(@Param("email") String email);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

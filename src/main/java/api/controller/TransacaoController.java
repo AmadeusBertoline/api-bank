@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import api.dto.PixRequestDTO;
@@ -27,9 +28,9 @@ public class TransacaoController {
 
     @Operation(summary = "realizar PIX", description = "realizar um PIX")
     @PostMapping
-    public ResponseEntity<TransacaoResponseDTO> pix(@RequestBody @Valid PixRequestDTO dto) {
+    public ResponseEntity<TransacaoResponseDTO> pix(@RequestHeader("X-Idempotency-key") String idempotency,   @RequestBody @Valid PixRequestDTO dto) {
 
-        TransacaoResponseDTO realizada = transacaoService.pix(dto);
+        TransacaoResponseDTO realizada = transacaoService.pix(dto, idempotency);
         return ResponseEntity.status(HttpStatus.CREATED).body(realizada);
 
     }

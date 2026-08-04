@@ -1,5 +1,8 @@
 package api.service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,18 +43,39 @@ public class TransacaoService {
     private ChavePixRepository chavePixRepository;
 
     @Transactional
-    public TransacaoResponseDTO pix(PixRequestDTO dto) {
+    public TransacaoResponseDTO pix(PixRequestDTO dto, String idempotencyKey) {
+
+        if (transacaoRepository.existsByIdempotencyKey(idempotencyKey)) {
+            throw new RegraNegocioException("Esta transação já foi processada.");
+        }
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-        Conta contaOrigem = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
+        Conta origemTemp = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(
                         () -> new ResourceNotFoundException("Conta origem não encontrada de id " + usuario.getId()));
 
-        Conta contaDestino = contaRepository.findByChavesPixWithLock(dto.getChavePix())
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()
-                                + " verifique se essa chave pix está cadastrada"));
+        Conta destinoTemp = contaRepository.findByChavesPix(dto.getChavePix())
+                .orElseThrow(() -> new ResourceNotFoundException("Conta destino não encontrada de id " + usuario.getId()
+                        + " verifique se essa chave pix está cadastrada"));
+
+        if (origemTemp.getId().equals(destinoTemp.getId())) {
+            throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
+        }
+
+        // ordenação dos ids para travar as threads na mesma ordem
+        Long primeiroId = Math.min(origemTemp.getId(), destinoTemp.getId());
+        Long segundoId = Math.max(origemTemp.getId(), destinoTemp.getId());
+
+        // busca com lock
+        Conta conta1 = contaRepository.findByIdWithLock(primeiroId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada id " + primeiroId));
+        Conta conta2 = contaRepository.findByIdWithLock(segundoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada id " + segundoId));
+
+        // mapeia de volta quem é a origem e quem é o destino
+        Conta contaOrigem = origemTemp.getId().equals(primeiroId) ? conta1 : conta2;
+        Conta contaDestino = destinoTemp.getId().equals(primeiroId) ? conta1 : conta2;
 
         ChavePix chavePix = chavePixRepository.findByChave(dto.getChavePix())
                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada"));
@@ -64,8 +88,14 @@ public class TransacaoService {
             throw new RegraNegocioException("A conta destino está inativa e não pode receber ou enviar transações");
         }
 
-        if (contaOrigem.getId().equals(contaDestino.getId())) {
-            throw new RegraNegocioException("A conta de origem e destino não podem ser iguais.");
+        // validação de limite diário
+        LocalDateTime inicioDoDia = LocalDate.now().atStartOfDay();
+        BigDecimal totalEnviadoHoje = transacaoRepository.sumValorEnviadoHoje(contaOrigem.getId(), inicioDoDia);
+        BigDecimal novoTotal = totalEnviadoHoje.add(dto.getValor());
+
+        if (contaOrigem.getLimiteDiarioPix() != null && novoTotal.compareTo(contaOrigem.getLimiteDiarioPix()) > 0) {
+            throw new RegraNegocioException("Limite diário de Pix excedido. Limite atual: R$ "
+                    + contaOrigem.getLimiteDiarioPix() + ". Já utilizado hoje: R$ " + totalEnviadoHoje);
         }
 
         if (contaOrigem.getSaldo().compareTo(dto.getValor()) < 0) {
@@ -78,6 +108,7 @@ public class TransacaoService {
         transacao.setDescricao(dto.getDescricao());
         transacao.setContaOrigem(contaOrigem);
         transacao.setContaDestino(contaDestino);
+        transacao.setIdempotencyKey(idempotencyKey);
 
         Pix pix = new Pix();
         pix.setTransacao(transacao);
@@ -92,7 +123,6 @@ public class TransacaoService {
         pixRepository.save(pix);
 
         return toDTO(transacao);
-
     }
 
     public List<TransacaoResponseDTO> listarPorConta() {

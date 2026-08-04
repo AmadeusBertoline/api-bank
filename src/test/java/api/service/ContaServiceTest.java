@@ -162,7 +162,7 @@ class ContaServiceTest {
         when(query.executeUpdate()).thenReturn(1);
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.findByIdWithLock(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
         contaExistente.setAtiva(false);
         when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
 
@@ -184,7 +184,7 @@ class ContaServiceTest {
         when(query.executeUpdate()).thenReturn(1);
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.findByIdWithLock(usuarioExistente.getId())).thenReturn(Optional.of(contaExistente));
         contaExistente.setAtiva(true);
         when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
 
