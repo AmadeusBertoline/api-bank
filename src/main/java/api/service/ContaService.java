@@ -1,12 +1,8 @@
 package api.service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.enums.TipoConta;
