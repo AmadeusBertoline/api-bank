@@ -3,9 +3,9 @@ package api.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
@@ -125,17 +125,15 @@ public class TransacaoService {
         return toDTO(transacao);
     }
 
-    public List<TransacaoResponseDTO> listarPorConta() {
+    public Page<TransacaoResponseDTO> listarPorConta(Pageable pageable) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id: " + usuario.getId()));
 
-        return transacaoRepository.encontrarTransacoes(conta.getId())
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return transacaoRepository.encontrarTransacoes(conta.getId(), pageable)
+                .map(this::toDTO);
     }
 
     private TransacaoResponseDTO toDTO(Transacao transacao) {

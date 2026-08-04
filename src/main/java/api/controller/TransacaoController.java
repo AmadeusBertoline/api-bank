@@ -1,7 +1,9 @@
 package api.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +30,8 @@ public class TransacaoController {
 
     @Operation(summary = "realizar PIX", description = "realizar um PIX")
     @PostMapping
-    public ResponseEntity<TransacaoResponseDTO> pix(@RequestHeader("X-Idempotency-key") String idempotency,   @RequestBody @Valid PixRequestDTO dto) {
+    public ResponseEntity<TransacaoResponseDTO> pix(@RequestHeader("X-Idempotency-key") String idempotency,
+            @RequestBody @Valid PixRequestDTO dto) {
 
         TransacaoResponseDTO realizada = transacaoService.pix(dto, idempotency);
         return ResponseEntity.status(HttpStatus.CREATED).body(realizada);
@@ -37,10 +40,10 @@ public class TransacaoController {
 
     @Operation(summary = "extrato da conta", description = "Lista todas as transações da conta, da mais recente para a mais antiga")
     @GetMapping("/extrato")
-    public ResponseEntity<List<TransacaoResponseDTO>> listarPorConta() {
+    public ResponseEntity<Page<TransacaoResponseDTO>> listarPorConta(
+            @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        List<TransacaoResponseDTO> transacoes = new ArrayList<>();
-        transacoes = transacaoService.listarPorConta();
+        Page<TransacaoResponseDTO> transacoes = transacaoService.listarPorConta(pageable);
         return ResponseEntity.ok(transacoes);
 
     }

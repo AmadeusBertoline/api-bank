@@ -2,7 +2,10 @@ package api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -12,20 +15,30 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.ChavePix;
@@ -54,7 +67,7 @@ class TransacaoServiceTest {
     @Mock
     private UsuarioAutenticadoService usuarioAutenticadoService;
 
-    @Mock 
+    @Mock
     private ChavePixRepository chavePixRepository;
 
     @InjectMocks
@@ -72,7 +85,7 @@ class TransacaoServiceTest {
     private Endereco enderecoDestino;
     private Conta contaDestino;
     private ChavePix chavePixDestino;
-
+    private TransacaoResponseDTO transacaoResponseDTO;
     private String idempotencyKey;
 
     @BeforeEach
@@ -170,6 +183,14 @@ class TransacaoServiceTest {
         dto.setChavePix("12345678901");
         dto.setValor(new BigDecimal("500.00"));
         dto.setDescricao("pix da praia");
+
+        transacaoResponseDTO = new TransacaoResponseDTO();
+        transacaoResponseDTO.setTitularConta("João Silva");
+        transacaoResponseDTO.setTitularContaDestino("Maria Oliveira");
+        transacaoResponseDTO.setTipo(TipoTransacao.PIX);
+        transacaoResponseDTO.setValor(dto.getValor());
+        transacaoResponseDTO.setDescricao(dto.getDescricao());
+        transacaoResponseDTO.setDataHora(LocalDateTime.now());
     }
 
     @Test
@@ -290,7 +311,8 @@ class TransacaoServiceTest {
 
         // ARRANGE
         when(transacaoRepository.existsByIdempotencyKey(idempotencyKey)).thenReturn(false);
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenThrow(new ResourceNotFoundException("Usuário inexistente"));
+        when(usuarioAutenticadoService.getUsuarioLogado())
+                .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
 
         // ACT + ASSERT
         assertThatThrownBy(() -> transacaoService.pix(dto, idempotencyKey))
@@ -390,6 +412,27 @@ class TransacaoServiceTest {
         verify(transacaoRepository, never()).save(any());
         verify(pixRepository, never()).save(any());
 
+    }
+
+    @Test
+    void listarPorConta_DeveRetornarPageDeDTOs() {
+        // ARRANGE
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
+        Transacao transacao = new Transacao(/* inicializar com dados mock */);
+        Page<Transacao> pageMock = new PageImpl<>(List.of(transacao), pageable, 1);
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(anyString())).thenReturn(Optional.of(contaExistente));
+        when(transacaoRepository.encontrarTransacoes(eq(contaExistente.getId()), eq(pageable))).thenReturn(pageMock);
+
+        // ACT
+        Page<TransacaoResponseDTO> resultado = transacaoService.listarPorConta(pageable);
+
+        // ASSERT
+        assertNotNull(resultado);
+        assertEquals(1, resultado.getTotalElements());
+        assertEquals(1, resultado.getContent().size());
+        verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
     }
 
 }
