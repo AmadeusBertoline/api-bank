@@ -29,7 +29,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.registrarUsuario(dto, TipoRole.ROLE_USUARIO));
     }
 
-    @Operation(summary = "Login — retorna JWT")
+    @Operation(summary = "Login — retorna JWT", description = "Faz login independente do ROLE")
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody @Valid LoginRequestDTO dto) {
         return ResponseEntity.ok(authService.login(dto));

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
 import api.service.ChavePixService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -25,6 +26,7 @@ public class ChavePixController {
     @Autowired
     private ChavePixService chavePixService;
 
+    @Operation(summary = "Cadastrar chave pix", description = "Cadastra chave pix de diversos tipos")
     @PostMapping
     public ResponseEntity<ChavePixResponseDTO> cadastrar(@RequestBody @Valid ChavePixRequestDTO dto) {
         ChavePixResponseDTO chaveCriada = chavePixService.cadastrar(dto);

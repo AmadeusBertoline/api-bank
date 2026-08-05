@@ -14,6 +14,7 @@ import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
 import api.service.EnderecoService;
 import api.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
@@ -28,12 +29,14 @@ public class UsuarioController {
     @Autowired
     private EnderecoService enderecoService;
 
+    @Operation(summary = "Exibir dados do meu usuário", description = "Exibe meus dados de usuário")
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponseDTO> meusDados() {
         UsuarioResponseDTO usuario = usuarioService.meusDados();
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
 
+    @Operation(summary = "Atualizar meu endereço", description = "Atualiza qualquer informação do meu endereço")
     @PatchMapping("/endereco/atualizar")
     public ResponseEntity<EnderecoResponseDTO> atualizarEndereco(@RequestBody @Valid EnderecoRequestDTO dto) {
 
@@ -42,11 +45,11 @@ public class UsuarioController {
 
     }
 
+    @Operation(summary = "Atualizar meu email", description = "Atualiza meu email (login)")
     @PatchMapping("/email/atualizar")
     public ResponseEntity<UsuarioResponseDTO> atualizarEmail(@RequestBody @Valid UsuarioAtualizaEmailRequestDTO dto) {
         UsuarioResponseDTO usuario = usuarioService.atualizarEmail(dto);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
     }
-
 
 }

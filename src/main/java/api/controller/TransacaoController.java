@@ -29,7 +29,7 @@ public class TransacaoController {
     @Autowired
     private TransacaoService transacaoService;
 
-    @Operation(summary = "realizar PIX", description = "realizar um PIX")
+    @Operation(summary = "Realizar PIX", description = "Realiza um PIX")
     @PostMapping
     public ResponseEntity<TransacaoResponseDTO> pix(@RequestBody @Valid PixRequestDTO dto) {
 

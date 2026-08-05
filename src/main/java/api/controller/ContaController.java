@@ -20,7 +20,7 @@ public class ContaController {
     @Autowired
     private ContaService contaService;
 
-    @Operation(summary = "Exibir dados da minha conta corrente")
+    @Operation(summary = "Exibir dados da minha conta corrente", description = "Exibe dados da minha conta corrente")
     @GetMapping("/me")
     public ResponseEntity<ContaResponseDTO> exibirContaCorrente() {
 
@@ -28,26 +28,26 @@ public class ContaController {
         return ResponseEntity.ok(conta);
     }
 
-    @Operation(summary = "Desativar minha conta")
+    @Operation(summary = "Desativar minha conta", description = "Desativa minha conta")
     @PatchMapping("/desativar")
     public ResponseEntity<ContaResponseDTO> desativar() {
         ContaResponseDTO conta = contaService.desativarMinhaConta();
         return ResponseEntity.status(HttpStatus.OK).body(conta);
     }
 
-    @Operation(summary = "Ativar minha conta")
+    @Operation(summary = "Ativar minha conta", description = "Ativa minha conta")
     @PatchMapping("/ativar")
     public ResponseEntity<ContaResponseDTO> ativar() {
         ContaResponseDTO conta = contaService.ativarMinhaConta();
         return ResponseEntity.status(HttpStatus.OK).body(conta);
     }
 
-    @Operation(summary = "Ajustar limite diário da minha conta")
+    @Operation(summary = "Ajustar limite diário da minha conta", description = "Muda o limite de pix que eu realizo")
     @PatchMapping("/limite")
     public ResponseEntity<ContaResponseDTO> limite(LimiteRequestDTO dto) {
 
         ContaResponseDTO conta = contaService.limite(dto);
-        return ResponseEntity.status(HttpStatus.OK).body(conta); 
+        return ResponseEntity.status(HttpStatus.OK).body(conta);
 
     }
 

@@ -36,12 +36,13 @@ public class AdminController {
     @Autowired
     private ContaService contaService;
 
+    @Operation(summary = "Registar um novo admin", description = "Um admin registra outro admin")
     @PostMapping("/registrar")
     public ResponseEntity<String> registrarAdmin(@Valid @RequestBody UsuarioRequestDTO dto) {
         return ResponseEntity.ok(authService.registrarUsuario(dto, TipoRole.ROLE_ADMIN));
     }
 
-    @Operation(summary = "desativar conta")
+    @Operation(summary = "Desativar conta", description = "Um admin ativa uma conta")
     @PatchMapping("/desativar-conta/{id}")
     public ResponseEntity<ContaResponseDTO> desativar(@PathVariable Long id) {
 
@@ -51,7 +52,7 @@ public class AdminController {
 
     }
 
-    @Operation(summary = "ativar conta")
+    @Operation(summary = "Ativar conta", description = "Um admin desativa uma conta")
     @PatchMapping("/ativar-conta/{id}")
     public ResponseEntity<ContaResponseDTO> ativar(@PathVariable Long id) {
 
@@ -62,7 +63,7 @@ public class AdminController {
     }
 
     @PageableAsQueryParam
-    @Operation(summary = "listar todas as contas", description = "Um admin lista todas as contas criadas")
+    @Operation(summary = "Listar todas as contas", description = "Um admin lista todas as contas criadas")
     @GetMapping("/listar-contas")
     public ResponseEntity<Page<ContaResponseDTO>> listarTodas(
             @Parameter(hidden = true) @PageableDefault(page = 0, size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
