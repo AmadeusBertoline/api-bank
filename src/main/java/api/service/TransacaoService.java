@@ -95,9 +95,9 @@ public class TransacaoService {
         BigDecimal totalEnviadoHoje = transacaoRepository.sumValorEnviadoHoje(contaOrigem.getId(), inicioDoDia);
         BigDecimal novoTotal = totalEnviadoHoje.add(dto.valor());
 
-        if (contaOrigem.getLimiteDiarioPix() != null && novoTotal.compareTo(contaOrigem.getLimiteDiarioPix()) > 0) {
+        if (contaOrigem.getLimiteDiario() != null && novoTotal.compareTo(contaOrigem.getLimiteDiario()) > 0) {
             throw new RegraNegocioException("Limite diário de Pix excedido. Limite atual: R$ "
-                    + contaOrigem.getLimiteDiarioPix() + ". Já utilizado hoje: R$ " + totalEnviadoHoje);
+                    + contaOrigem.getLimiteDiario() + ". Já utilizado hoje: R$ " + totalEnviadoHoje);
         }
 
         if (contaOrigem.getSaldo().compareTo(dto.valor()) < 0) {

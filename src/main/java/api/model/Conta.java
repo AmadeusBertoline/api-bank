@@ -47,13 +47,13 @@ public class Conta {
     private LocalDateTime dataCriacao;
 
     @Column
-    private BigDecimal limiteDiarioPix;
+    private BigDecimal limiteDiario;
 
     @PrePersist
     public void prePersist() {
         this.dataCriacao = LocalDateTime.now();
         this.ativa = true;
-        this.limiteDiarioPix = new BigDecimal("500.00");
+        this.limiteDiario = new BigDecimal("500.00");
         if (this.saldo == null) {
             this.saldo = BigDecimal.ZERO;
         }

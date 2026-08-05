@@ -83,7 +83,6 @@ class TransacaoServiceTest {
     private Conta contaDestino;
     private ChavePix chavePixDestino;
     private TransacaoResponseDTO transacaoResponseDTO;
-    
 
     @BeforeEach
     void setup() {
@@ -126,7 +125,7 @@ class TransacaoServiceTest {
         contaExistente.setNumeroConta("0001-1");
         contaExistente.setDigito("1");
         contaExistente.setSaldo(new BigDecimal("1000.00"));
-        contaExistente.setLimiteDiarioPix(new BigDecimal("1000.00"));
+        contaExistente.setLimiteDiario(new BigDecimal("1000.00"));
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
@@ -163,7 +162,7 @@ class TransacaoServiceTest {
         contaDestino.setNumeroConta("0002-2");
         contaDestino.setDigito("2");
         contaDestino.setSaldo(new BigDecimal("500.00"));
-        contaDestino.setLimiteDiarioPix(new BigDecimal("1000.00"));
+        contaDestino.setLimiteDiario(new BigDecimal("1000.00"));
         contaDestino.setTipoConta(TipoConta.PAGAMENTO);
         contaDestino.setAtiva(true);
         contaDestino.setDataCriacao(LocalDateTime.now());
@@ -174,12 +173,10 @@ class TransacaoServiceTest {
         chavePixDestino.setTipo(TipoChavePix.CPF);
         chavePixDestino.setConta(contaDestino);
 
-        
         dto = new PixRequestDTO(
                 "12345678901",
                 new BigDecimal("500.00"),
-                "pix da praia"
-        );
+                "pix da praia");
 
         transacaoResponseDTO = new TransacaoResponseDTO(
                 "João Silva",
@@ -187,8 +184,7 @@ class TransacaoServiceTest {
                 TipoTransacao.PIX,
                 dto.valor(),
                 dto.descricao(),
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
     }
 
     @Test
@@ -242,7 +238,7 @@ class TransacaoServiceTest {
 
         // ARRANGE
         dto = new PixRequestDTO(dto.chavePix(), new BigDecimal("9999.00"), dto.descricao());
-        contaExistente.setLimiteDiarioPix(new BigDecimal("20000.00"));
+        contaExistente.setLimiteDiario(new BigDecimal("20000.00"));
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));

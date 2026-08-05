@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import api.dto.ContaResponseDTO;
+import api.dto.LimiteRequestDTO;
 import api.service.ContaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,16 +30,25 @@ public class ContaController {
 
     @Operation(summary = "Desativar minha conta")
     @PatchMapping("/desativar")
-    public ResponseEntity<ContaResponseDTO> desativar(){
+    public ResponseEntity<ContaResponseDTO> desativar() {
         ContaResponseDTO conta = contaService.desativarMinhaConta();
         return ResponseEntity.status(HttpStatus.OK).body(conta);
     }
 
     @Operation(summary = "Ativar minha conta")
     @PatchMapping("/ativar")
-    public ResponseEntity<ContaResponseDTO> ativar(){
+    public ResponseEntity<ContaResponseDTO> ativar() {
         ContaResponseDTO conta = contaService.ativarMinhaConta();
         return ResponseEntity.status(HttpStatus.OK).body(conta);
+    }
+
+    @Operation(summary = "Ajustar limite diário da minha conta")
+    @PatchMapping("/limite")
+    public ResponseEntity<ContaResponseDTO> limite(LimiteRequestDTO dto) {
+
+        ContaResponseDTO conta = contaService.limite(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(conta); 
+
     }
 
 }

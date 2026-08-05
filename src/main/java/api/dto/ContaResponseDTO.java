@@ -12,5 +12,6 @@ public record ContaResponseDTO(
     BigDecimal saldo,
     TipoConta tipoConta,
     Boolean ativa,
-    LocalDateTime dataCriacao
+    LocalDateTime dataCriacao,
+    BigDecimal limite
 ) {}

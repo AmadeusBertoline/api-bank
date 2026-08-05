@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
+import api.dto.LimiteRequestDTO;
 import api.enums.TipoConta;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
@@ -140,6 +141,22 @@ public class ContaService {
 
     }
 
+    public ContaResponseDTO limite(LimiteRequestDTO dto) {
+
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Conta não encontrada para o usuário " + usuario.getEmail()));
+
+        conta.setLimiteDiario(dto.limite());
+
+        Conta salva = contaRepository.save(conta);
+
+        return toDTO(salva);
+
+    }
+
     private int calcularDigito(Long id) {
         return (int) (id % 10);
     }
@@ -154,7 +171,7 @@ public class ContaService {
     private ContaResponseDTO toDTO(Conta conta) {
         return new ContaResponseDTO(conta.getId(), conta.getUsuario().getNome(),
                 conta.getUsuario().getEmail(), conta.getNumeroConta(), conta.getSaldo(), conta.getTipoConta(),
-                conta.getAtiva(), conta.getDataCriacao());
+                conta.getAtiva(), conta.getDataCriacao(), conta.getLimiteDiario());
 
     }
 }

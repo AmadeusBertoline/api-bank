@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
+import api.dto.LimiteRequestDTO;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
 import api.exception.ResourceNotFoundException;
@@ -63,6 +64,7 @@ class ContaServiceTest {
     private Conta contaExistente;
     private Usuario usuarioExistente;
     private ContaRequestDTO contaRequestDTO;
+    private LimiteRequestDTO limiteRequestDTO;
 
     @BeforeEach
     void setup() {
@@ -98,9 +100,11 @@ class ContaServiceTest {
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
         contaExistente.setAtiva(true);
         contaExistente.setDataCriacao(LocalDateTime.now());
+        contaExistente.setLimiteDiario(new BigDecimal("500.00"));
 
-        // Instanciação direta via construtor do Record
         contaRequestDTO = new ContaRequestDTO(usuarioExistente);
+
+        limiteRequestDTO = new LimiteRequestDTO(new BigDecimal("700.00"));
     }
 
     @Test
@@ -241,5 +245,24 @@ class ContaServiceTest {
                 .hasMessage("Conta não encontrada");
 
         verify(contaRepository, never()).save(any(Conta.class));
+    }
+
+    @Test
+    @DisplayName("Deve alterar limite pix com sucesso")
+    void deveAlterarLimitePixComSucesso() {
+
+        // ARRANGE
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
+
+        // ACT
+        ContaResponseDTO resultado = contaService.limite(limiteRequestDTO);
+
+        // ASSERT
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.limite()).isEqualByComparingTo(limiteRequestDTO.limite());
+        verify(contaRepository, times(1)).save(contaExistente);
+
     }
 }
