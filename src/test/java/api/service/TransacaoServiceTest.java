@@ -83,6 +83,7 @@ class TransacaoServiceTest {
     private Conta contaDestino;
     private ChavePix chavePixDestino;
     private TransacaoResponseDTO transacaoResponseDTO;
+    
 
     @BeforeEach
     void setup() {
@@ -173,7 +174,7 @@ class TransacaoServiceTest {
         chavePixDestino.setTipo(TipoChavePix.CPF);
         chavePixDestino.setConta(contaDestino);
 
-        // INSTANCIAÇÃO DOS RECORDS
+        
         dto = new PixRequestDTO(
                 "12345678901",
                 new BigDecimal("500.00"),
