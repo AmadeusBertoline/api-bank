@@ -43,7 +43,6 @@ public class UsuarioService {
 
     }
 
-    @Cacheable("dados-usuario")
     public UsuarioResponseDTO meusDados() {
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
         return toDTO(usuario);
