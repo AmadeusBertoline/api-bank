@@ -1,6 +1,5 @@
 package api.controller;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import api.dto.PageResponseDTO;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.service.TransacaoService;
@@ -41,10 +41,10 @@ public class TransacaoController {
     @PageableAsQueryParam
     @Operation(summary = "Extrato da conta", description = "Lista todas as transações da conta, da mais recente para a mais antiga")
     @GetMapping("/extrato")
-    public ResponseEntity<Page<TransacaoResponseDTO>> listarPorConta(
+    public ResponseEntity<PageResponseDTO<TransacaoResponseDTO>> listarPorConta(
             @Parameter(hidden = true) @PageableDefault(page = 0, size = 10, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<TransacaoResponseDTO> transacoes = transacaoService.extrato(pageable);
+        PageResponseDTO<TransacaoResponseDTO> transacoes = transacaoService.extrato(pageable);
         return ResponseEntity.ok(transacoes);
     }
 

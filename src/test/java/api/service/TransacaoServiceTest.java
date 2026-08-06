@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import api.dto.PageResponseDTO;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
 import api.enums.TipoChavePix;
@@ -399,12 +400,12 @@ class TransacaoServiceTest {
         when(transacaoRepository.encontrarTransacoes(eq(contaExistente.getId()), eq(pageable))).thenReturn(pageMock);
 
         // ACT
-        Page<TransacaoResponseDTO> resultado = transacaoService.extrato(pageable);
+        PageResponseDTO<TransacaoResponseDTO> resultado = transacaoService.extrato(pageable);
 
         // ASSERT
         assertNotNull(resultado);
-        assertEquals(1, resultado.getTotalElements());
-        assertEquals(1, resultado.getContent().size());
+        assertEquals(1, resultado.totalElementos());
+        assertEquals(1, resultado.conteudo().size());
         verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
     }
 

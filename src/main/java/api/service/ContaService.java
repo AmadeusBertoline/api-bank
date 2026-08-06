@@ -51,6 +51,7 @@ public class ContaService {
         conta = contaRepository.save(conta);
 
         String numeroConta = String.format("%04d-%d", conta.getId(), calcularDigito(conta.getId()));
+        conta.setDigito(String.valueOf(calcularDigito(conta.getId())));
         conta.setNumeroConta(numeroConta);
 
         return toDTO(conta);
