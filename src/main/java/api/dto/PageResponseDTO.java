@@ -2,9 +2,10 @@ package api.dto;
 
 import java.io.Serializable;
 import java.util.List;
-
 import org.springframework.data.domain.Page;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public record PageResponseDTO<T>(
         List<T> conteudo,
         int paginaAtual,
