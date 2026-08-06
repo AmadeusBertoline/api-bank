@@ -6,6 +6,7 @@ import api.dto.UsuarioResponseDTO;
 import api.exception.RegraNegocioException;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class UsuarioService {
@@ -42,6 +43,7 @@ public class UsuarioService {
 
     }
 
+    @Cacheable("dados-usuario")
     public UsuarioResponseDTO meusDados() {
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
         return toDTO(usuario);

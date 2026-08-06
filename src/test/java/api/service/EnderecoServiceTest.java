@@ -128,7 +128,7 @@ class EnderecoServiceTest {
 
     @Test
     @DisplayName("Deve lançar exceção ao não encontrar usuário logado ao atualizar endereço")
-    void excecaoAoNaoEncontrarUsuarioLogadoAoAtualizarEndereco() {
+    void deveLancarExcecaoAoNaoEncontrarUsuarioLogadoAoAtualizarEndereco() {
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado())
                 .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
@@ -143,7 +143,7 @@ class EnderecoServiceTest {
 
     @Test
     @DisplayName("Deve lançar exceção quando endereço não for encontrado ao atualizar")
-    void excecaoEnderecoNaoEncontradoAoAtualizar() {
+    void deveLancarExcecaoEnderecoNaoEncontradoAoAtualizar() {
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(enderecoRepository.findById(usuarioExistente.getEndereco().getId())).thenReturn(Optional.empty());

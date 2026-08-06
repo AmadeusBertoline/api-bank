@@ -44,7 +44,7 @@ public class TransacaoController {
     public ResponseEntity<Page<TransacaoResponseDTO>> listarPorConta(
             @Parameter(hidden = true) @PageableDefault(page = 0, size = 10, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<TransacaoResponseDTO> transacoes = transacaoService.listarPorConta(pageable);
+        Page<TransacaoResponseDTO> transacoes = transacaoService.extrato(pageable);
         return ResponseEntity.ok(transacoes);
     }
 

@@ -48,12 +48,11 @@ public class ChavePixService {
 
         TipoChavePix tipo = TipoChavePix.detectar(dto.chave());
 
-        if (tipo.equals(TipoChavePix.CPF)) {
-            chavePix.setChave(usuario.getCpf());
-        } else {
-            chavePix.setChave(dto.chave());
+        if(tipo.equals(TipoChavePix.CPF) && !dto.chave().equals(usuario.getCpf())){
+            throw new RegraNegocioException("Você não pode usar o CPF de terceiros");
         }
 
+        chavePix.setChave(dto.chave());
         chavePix.setTipo(tipo);
         chavePix.setConta(conta);
 

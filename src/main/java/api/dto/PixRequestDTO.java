@@ -9,9 +9,4 @@ public record PixRequestDTO(
     @ChavePixValida String chavePix,
     @ValorPositivoValido BigDecimal valor,
     @DescricaoPixValida String descricao
-) {
-
-    public void setValor(BigDecimal bigDecimal) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setValor'");
-    }}
+) {}

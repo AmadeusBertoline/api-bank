@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -151,6 +152,7 @@ public class ChavePixServiceTest {
     }
 
     @Test
+    @DisplayName("Deve cadastrar uma chave Pix com sucesso")
     void deveCriarChavePixComSucesso() {
 
         // ARRANGE
@@ -170,6 +172,24 @@ public class ChavePixServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar cadastrar CPF de terceiros como sua chave Pix")
+    void deveLancarExcecaoCpfIncorreto() {
+
+        // ARRANGE
+        chavePixRequestDTO = new ChavePixRequestDTO("90594260027");
+        when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.empty());
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.cadastrar(chavePixRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Você não pode usar o CPF de terceiros");
+
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar cadastrar uma chave Pix já cadastrada")
     void deveLancarExcecaoChavePixJaCadastrada() {
 
         // ARRANGE
@@ -184,6 +204,7 @@ public class ChavePixServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando a conta não for encontrada")
     void deveLancarExcecaoContaNaoEncontrada() {
 
         // ARRANGE
@@ -202,6 +223,7 @@ public class ChavePixServiceTest {
     }
 
     @Test
+    @DisplayName("Deve listar as chaves Pix com sucesso")
     void deveListarChavesPixComSucesso() {
 
         // ARRANGE
@@ -221,7 +243,8 @@ public class ChavePixServiceTest {
     }
 
     @Test
-    void excecaoAoListarChavePixSemUsuarioLogado() {
+    @DisplayName("Deve lançar exceção ao listar chaves Pix sem usuário logado")
+    void deveLancarExcecaoAoListarChavePixSemUsuarioLogado() {
 
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado())
@@ -237,7 +260,8 @@ public class ChavePixServiceTest {
     }
 
     @Test
-    void deletarChavePixComSucesso() {
+    @DisplayName("Deve deletar uma chave Pix com sucesso")
+    void deveDeletarChavePixComSucesso() {
 
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
@@ -252,7 +276,8 @@ public class ChavePixServiceTest {
     }
 
     @Test
-    void excecaoAoNaoAcharChave() {
+    @DisplayName("Deve lançar exceção ao tentar deletar uma chave Pix inexistente")
+    void deveLancarExcecaoAoNaoAcharChave() {
 
         // ARRANGE
         when(chavePixRepository.findById(99L)).thenReturn(Optional.empty());
@@ -267,7 +292,8 @@ public class ChavePixServiceTest {
     }
 
     @Test
-    void excecaoNaoPodeDeletarChaveDeOutrosUsuarios() {
+    @DisplayName("Deve lançar exceção ao tentar deletar uma chave Pix de outro usuário")
+    void deveLancarExcecaoNaoPodeDeletarChaveDeOutrosUsuarios() {
 
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);

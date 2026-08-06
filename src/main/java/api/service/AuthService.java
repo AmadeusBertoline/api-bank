@@ -11,6 +11,8 @@ import api.model.Usuario;
 import api.repository.UsuarioRepository;
 import api.security.JwtService;
 import jakarta.transaction.Transactional;
+
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +37,7 @@ public class AuthService {
     }
 
     @Transactional
+    @CacheEvict(value = "usuarios", allEntries = true)
     public String registrarUsuario(UsuarioRequestDTO dto, TipoRole role) {
 
         if (usuarioRepository.findByEmail(dto.email()).isPresent()) {

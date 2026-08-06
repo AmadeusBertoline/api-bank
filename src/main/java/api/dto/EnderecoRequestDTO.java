@@ -15,9 +15,6 @@ public record EnderecoRequestDTO(
     @CidadeValida String cidade,
     @UfValida String uf,
     @CepValido String cep
-) {
+) {}
 
-    public String getUf() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUf'");
-    }}
+    

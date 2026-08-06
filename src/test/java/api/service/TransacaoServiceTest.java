@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -188,6 +189,8 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve realizar uma transferência Pix com sucesso")
+
     void deveCriarTransacaoPixComSucesso() {
 
         // ARRANGE
@@ -213,6 +216,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao exceder o limite diário de Pix")
     void deveLancarExcecaoLimiteDiarioExcedido() {
 
         // ARRANGE
@@ -234,6 +238,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando o saldo for insuficiente")
     void deveLancarExcecaoSaldoInsuficiente() {
 
         // ARRANGE
@@ -258,6 +263,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar realizar um Pix para a própria conta")
     void deveLancarExcecaoTransferenciaParaSiMesmo() {
 
         // ARRANGE
@@ -277,6 +283,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao realizar um Pix sem usuário autenticado")
     void deveLancarExcecaoTransferenciaSemToken() {
 
         // ARRANGE
@@ -294,6 +301,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando a conta de origem não for encontrada")
     void deveLancarExcecaoContaOrigemNaoEncontrada() {
 
         usuarioExistente.setEmail("incorreto@gmail.com");
@@ -312,6 +320,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando a conta de destino não for encontrada")
     void deveLancarExcecaoContaDestinoNaoEncontrada() {
 
         dto = new PixRequestDTO("35625605084", dto.valor(), dto.descricao());
@@ -331,6 +340,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando a conta de origem estiver inativa")
     void deveLancarExcecaoContaOrigemInativa() {
 
         contaExistente.setAtiva(false);
@@ -353,6 +363,7 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção quando a conta de destino estiver inativa")
     void deveLancarExcecaoContaDestinoInativa() {
 
         contaDestino.setAtiva(false);
@@ -375,7 +386,9 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve retornar o extrato paginado da conta com sucesso")
     void listarPorConta_DeveRetornarPageDeDTOs() {
+
         // ARRANGE
         Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
         Transacao transacao = new Transacao();
@@ -386,7 +399,7 @@ class TransacaoServiceTest {
         when(transacaoRepository.encontrarTransacoes(eq(contaExistente.getId()), eq(pageable))).thenReturn(pageMock);
 
         // ACT
-        Page<TransacaoResponseDTO> resultado = transacaoService.listarPorConta(pageable);
+        Page<TransacaoResponseDTO> resultado = transacaoService.extrato(pageable);
 
         // ASSERT
         assertNotNull(resultado);
@@ -394,4 +407,5 @@ class TransacaoServiceTest {
         assertEquals(1, resultado.getContent().size());
         verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
     }
+
 }

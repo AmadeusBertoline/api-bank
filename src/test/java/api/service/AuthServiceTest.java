@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -103,6 +104,7 @@ public class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("Deve registrar um usuário com sucesso")
     void deveCriarUsuarioComSucesso() {
 
         // ARRANGE
@@ -116,7 +118,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    void deveLancarExceptionEmailJaCadastrado() {
+    @DisplayName("Deve lançar exceção ao tentar registrar um e-mail já cadastrado")
+    void deveLancarExcecaoEmailJaCadastrado() {
 
         // ARRANGE
         when(usuarioRepository.findByEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(usuarioExistente));
@@ -129,7 +132,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    void deveLancarExceptionCpfJaCadastrado() {
+    @DisplayName("Deve lançar exceção ao tentar registrar um CPF já cadastrado")
+    void deveLancarExcecaoCpfJaCadastrado() {
 
         // ARRANGE
         when(usuarioRepository.findByCpf(usuarioExistente.getCpf())).thenReturn(Optional.of(usuarioExistente));
@@ -142,7 +146,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    void deveLancarExceptionSenhasDiferentes() {
+    @DisplayName("Deve lançar exceção quando as senhas forem diferentes")
+    void deveLancarExcecaoSenhasDiferentes() {
 
         // ARRANGE
         UsuarioRequestDTO dtoSenhasDiferentes = new UsuarioRequestDTO(
@@ -162,6 +167,7 @@ public class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("Deve realizar login com sucesso")
     void deveLogarComSucesso() {
 
         // ARRANGE
@@ -182,7 +188,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    void deveLancarExceptionEmailIncorreto() {
+    @DisplayName("Deve lançar exceção ao tentar realizar login com e-mail incorreto")
+    void deveLancarExcecaoEmailIncorreto() {
 
         // ARRANGE
         LoginRequestDTO loginEmailIncorreto = new LoginRequestDTO("emailfakeerrado@email.com", loginRequestDTO.senha());
@@ -198,6 +205,7 @@ public class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar realizar login com senha incorreta")
     void deveLancarExcecaoSenhaIncorreta() {
 
         // ARRANGE
