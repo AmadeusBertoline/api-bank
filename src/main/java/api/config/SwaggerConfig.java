@@ -7,41 +7,54 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.oas.models.tags.Tag;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("API Bank — Gerenciamento Financeiro")
-                        .version("1.0.0")
-                        .description("API REST com autenticação JWT")
-                        .contact(new Contact()
-                                .name("Amadeus Bertoline")
-                                .email("amadeusbertoline123@gmail.com")))
+        @Bean
+        public OpenAPI customOpenAPI() {
+                return new OpenAPI()
+                                .info(new Info()
+                                                .title("API Bank — Gerenciamento Financeiro")
+                                                .version("1.0.0")
+                                                .description("API REST com autenticação JWT")
+                                                .contact(new Contact()
+                                                                .name("Amadeus Bertoline")
+                                                                .email("amadeusbertoline123@gmail.com")))
+                                .addSecurityItem(new SecurityRequirement().addList("Bearer"))
+                                .servers(List.of(new Server().url("/")))
+                                .components(new Components()
+                                                .addSecuritySchemes("Bearer", new SecurityScheme()
+                                                                .type(SecurityScheme.Type.HTTP)
+                                                                .scheme("bearer")
+                                                                .bearerFormat("JWT")));
+        }
 
-                .tags(List.of(
-                        new Tag().name("Autenticação").description("Endpoints de login e geração de token"),
-                        new Tag().name("Contas").description("Operações e consultas de contas bancárias"),
-                        new Tag().name("Usuários").description("Gerenciamento e visualização de dados do usuário"),
-                        new Tag().name("Chaves Pix").description("Gestão de chaves Pix"),
-                        new Tag().name("Transações").description("Realizar transação e extrato"),
-                        new Tag().name("Admin").description("Cadastro de administradores, gerenciamento de contas e visualização de dados de usuários")
-                ))
+        @Bean
+        public OpenApiCustomizer sortTagsCustom() {
+                return openApi -> {
+                        // Define a ordem exata das tags
+                        List<String> ordemDesejada = List.of(
+                                        "Autenticação",
+                                        "Contas",
+                                        "Usuários",
+                                        "Chaves Pix",
+                                        "Transações",
+                                        "Admin");
 
-                .addSecurityItem(new SecurityRequirement().addList("Bearer"))
-                .servers(List.of(new Server().url("/")))
-                .components(new Components()
-                        .addSecuritySchemes("Bearer", new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")));
-    }
+                        if (openApi.getTags() != null) {
+                                openApi.getTags().sort(Comparator.comparingInt(tag -> {
+                                        int index = ordemDesejada.indexOf(tag.getName());
+                                        // Tags não mapeadas na lista vão para o final
+                                        return index != -1 ? index : Integer.MAX_VALUE;
+                                }));
+                        }
+                };
+        }
 }
