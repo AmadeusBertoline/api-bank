@@ -11,13 +11,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +28,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import api.dto.PageResponseDTO;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
@@ -38,7 +35,6 @@ import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
-import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.ChavePix;

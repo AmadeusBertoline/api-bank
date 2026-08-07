@@ -89,8 +89,8 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new RegraNegocioException("Email ou senha inválidos"));
-        
-        if(usuario.getConta().getStatus().equals(StatusConta.ENCERRADA)){
+
+        if (usuario.getConta() != null && usuario.getConta().getStatus().equals(StatusConta.ENCERRADA)) {
 
             throw new RegraNegocioException("Você encerrou sua conta e não pode mais acessar ela");
 
