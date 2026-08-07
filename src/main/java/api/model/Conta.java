@@ -55,7 +55,7 @@ public class Conta {
         this.ativa = true;
         this.limiteDiario = new BigDecimal("500.00");
         if (this.saldo == null) {
-            this.saldo = BigDecimal.ZERO;
+            this.saldo = new BigDecimal("10000.00");
         }
         if (this.agencia == null || this.agencia.isBlank()) {
             this.agencia = "0001";

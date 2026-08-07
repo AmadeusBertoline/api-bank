@@ -33,12 +33,14 @@ public class ChavePixController {
         return ResponseEntity.status(HttpStatus.CREATED).body(chaveCriada);
     }
 
+    @Operation(summary = "Listar minhas chaves", description = "Lista todas as minhas chaves pix")
     @GetMapping
     public ResponseEntity<List<ChavePixResponseDTO>> listarChavesPix() {
         List<ChavePixResponseDTO> lista = chavePixService.listarChavesPix();
         return ResponseEntity.status(HttpStatus.OK).body(lista);
     }
 
+    @Operation(summary = "Deletar uma chave pix", description = "Deleta a chave pix selecionada")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
 
