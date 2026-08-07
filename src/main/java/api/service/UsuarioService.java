@@ -6,7 +6,6 @@ import api.dto.UsuarioResponseDTO;
 import api.exception.RegraNegocioException;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
-import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class UsuarioService {
