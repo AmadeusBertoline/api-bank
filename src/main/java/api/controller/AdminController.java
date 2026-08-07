@@ -46,7 +46,7 @@ public class AdminController {
     @PatchMapping("/desativar-conta/{id}")
     public ResponseEntity<ContaResponseDTO> desativar(@PathVariable Long id) {
 
-        ContaResponseDTO conta = contaService.desativar(id);
+        ContaResponseDTO conta = contaService.desativarViaAdmin(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(conta);
 
@@ -56,7 +56,7 @@ public class AdminController {
     @PatchMapping("/ativar-conta/{id}")
     public ResponseEntity<ContaResponseDTO> ativar(@PathVariable Long id) {
 
-        ContaResponseDTO conta = contaService.ativar(id);
+        ContaResponseDTO conta = contaService.ativarViaAdmin(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(conta);
 

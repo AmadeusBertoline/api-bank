@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
+import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
@@ -98,8 +99,10 @@ public class ChavePixServiceTest {
         contaExistente.setDigito("1");
         contaExistente.setSaldo(new BigDecimal("1000.00"));
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
-        contaExistente.setAtiva(true);
+        contaExistente.setStatus(StatusConta.ATIVA);
         contaExistente.setDataCriacao(LocalDateTime.now());
+
+        usuarioExistente.setConta(contaExistente);
 
         chavePixRequestDTO = new ChavePixRequestDTO(usuarioExistente.getCpf());
 
@@ -140,8 +143,10 @@ public class ChavePixServiceTest {
         contaDestino.setDigito("2");
         contaDestino.setSaldo(new BigDecimal("500.00"));
         contaDestino.setTipoConta(TipoConta.PAGAMENTO);
-        contaDestino.setAtiva(true);
+        contaDestino.setStatus(StatusConta.ATIVA);
         contaDestino.setDataCriacao(LocalDateTime.now());
+
+        usuarioDestino.setConta(contaDestino);
 
         chavePixDestino = new ChavePix();
         chavePixDestino.setId(2L);
@@ -168,6 +173,24 @@ public class ChavePixServiceTest {
         assertThat(resultado).isNotNull();
         assertThat(resultado.chave()).isEqualTo(chavePixRequestDTO.chave());
         assertThat(resultado.contaId()).isEqualByComparingTo(contaExistente.getId());
+
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar cadastrar chave Pix com conta bloqueada")
+    void deveLancarExcecaoAoCadastrarChaveComContaBloqueada() {
+
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.empty());
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.cadastrar(chavePixRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações de chave pix");
+
+        verify(chavePixRepository, never()).save(any());
 
     }
 
@@ -208,7 +231,6 @@ public class ChavePixServiceTest {
     void deveLancarExcecaoContaNaoEncontrada() {
 
         // ARRANGE
-        contaExistente.setUsuario(null);
         when(chavePixRepository.findByChave(chavePixRequestDTO.chave())).thenReturn(Optional.empty());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
@@ -255,8 +277,6 @@ public class ChavePixServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Usuário inexistente");
 
-        verify(chavePixRepository, never()).findUsuarioIdByIdDaChave(any());
-
     }
 
     @Test
@@ -264,14 +284,32 @@ public class ChavePixServiceTest {
     void deveDeletarChavePixComSucesso() {
 
         // ARRANGE
+        when(chavePixRepository.findById(1L)).thenReturn(Optional.of(chavePix));
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(chavePixRepository.findById(usuarioExistente.getId())).thenReturn(Optional.of(chavePix));
 
         // ACT
         chavePixService.deletar(1L);
 
         // ASSERT
         verify(chavePixRepository, times(1)).delete(any());
+
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar deletar chave Pix com conta bloqueada")
+    void deveLancarExcecaoAoDeletarChaveComContaBloqueada() {
+
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(chavePixRepository.findById(1L)).thenReturn(Optional.of(chavePix));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> chavePixService.deletar(1L))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações de chave pix");
+
+        verify(chavePixRepository, never()).delete(any());
 
     }
 
@@ -296,8 +334,8 @@ public class ChavePixServiceTest {
     void deveLancarExcecaoNaoPodeDeletarChaveDeOutrosUsuarios() {
 
         // ARRANGE
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(chavePixRepository.findById(2L)).thenReturn(Optional.of(chavePixDestino));
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
 
         // ACT + ASSERT
         assertThatThrownBy(() -> chavePixService.deletar(2L))

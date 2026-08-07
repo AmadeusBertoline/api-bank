@@ -3,6 +3,7 @@ package api.service;
 import org.springframework.stereotype.Service;
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
+import api.enums.StatusConta;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Endereco;
@@ -26,6 +27,13 @@ public class EnderecoService {
     public EnderecoResponseDTO atualizar(EnderecoRequestDTO dto) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        }
 
         Endereco endereco = enderecoRepository.findById(usuario.getEndereco().getId())
                 .orElseThrow(() -> new ResourceNotFoundException(

@@ -2,6 +2,8 @@ package api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import api.enums.StatusConta;
 import api.enums.TipoConta;
 
 public record ContaResponseDTO(
@@ -11,7 +13,7 @@ public record ContaResponseDTO(
     String numeroConta,
     BigDecimal saldo,
     TipoConta tipoConta,
-    Boolean ativa,
+    StatusConta status,
     LocalDateTime dataCriacao,
     BigDecimal limite
 ) {}

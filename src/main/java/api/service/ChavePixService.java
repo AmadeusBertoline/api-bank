@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import api.dto.ChavePixRequestDTO;
 import api.dto.ChavePixResponseDTO;
+import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
@@ -41,6 +42,13 @@ public class ChavePixService {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações de chave pix");
+
+        }
+
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
@@ -48,7 +56,7 @@ public class ChavePixService {
 
         TipoChavePix tipo = TipoChavePix.detectar(dto.chave());
 
-        if(tipo.equals(TipoChavePix.CPF) && !dto.chave().equals(usuario.getCpf())){
+        if (tipo.equals(TipoChavePix.CPF) && !dto.chave().equals(usuario.getCpf())) {
             throw new RegraNegocioException("Você não pode usar o CPF de terceiros");
         }
 
@@ -83,6 +91,13 @@ public class ChavePixService {
                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada de id " + id));
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações de chave pix");
+
+        }
 
         if (!chavePix.getConta().getUsuario().getId().equals(usuario.getId())) {
             throw new RegraNegocioException("Somente a conta dona da chave pode altera-la");

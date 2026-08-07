@@ -32,8 +32,10 @@ import org.springframework.data.domain.Sort;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.dto.LimiteRequestDTO;
+import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.Conta;
 import api.model.Endereco;
@@ -98,12 +100,13 @@ class ContaServiceTest {
         contaExistente.setDigito("1");
         contaExistente.setSaldo(new BigDecimal("1000.00"));
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
-        contaExistente.setAtiva(true);
+        contaExistente.setStatus(StatusConta.ATIVA);
         contaExistente.setDataCriacao(LocalDateTime.now());
         contaExistente.setLimiteDiario(new BigDecimal("500.00"));
 
-        contaRequestDTO = new ContaRequestDTO(usuarioExistente);
+        usuarioExistente.setConta(contaExistente);
 
+        contaRequestDTO = new ContaRequestDTO(usuarioExistente);
         limiteRequestDTO = new LimiteRequestDTO(new BigDecimal("700.00"));
     }
 
@@ -119,6 +122,18 @@ class ContaServiceTest {
         assertThat(resultado.titular()).isEqualTo("Amadeus Bertoline");
         assertThat(resultado.saldo()).isEqualByComparingTo("1000.00");
         verify(contaRepository, times(1)).save(any(Conta.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar criar conta para usuário que já possui conta")
+    void deveLancarExcecaoAoCriarContaParaUsuarioQueJaPossuiConta() {
+        when(contaRepository.existsByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(true);
+
+        assertThatThrownBy(() -> contaService.criar(contaRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("O usuário já possui uma conta");
+
+        verify(contaRepository, never()).save(any(Conta.class));
     }
 
     @Test
@@ -148,47 +163,20 @@ class ContaServiceTest {
     }
 
     @Test
-    @DisplayName("Admin deve desativar conta por ID com sucesso")
-    void deveDesativarContaComSucessoAdmin() {
-        contaExistente.setAtiva(true);
-
-        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
-        when(query.setParameter(anyString(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenReturn(1);
+    @DisplayName("Deve lançar exceção ao buscar dados de conta inexistente")
+    void deveLancarExcecaoAoBuscarMinhaContaInexistente() {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
-        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
-        ContaResponseDTO resultado = contaService.desativar(contaExistente.getId());
-
-        assertThat(resultado).isNotNull();
-        assertThat(resultado.ativa()).isFalse();
-        verify(contaRepository, times(1)).save(contaExistente);
+        assertThatThrownBy(() -> contaService.meusDados())
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conta não encontrada");
     }
 
     @Test
-    @DisplayName("Admin deve ativar conta por ID com sucesso")
-    void deveAtivarContaComSucessoAdmin() {
-        contaExistente.setAtiva(false);
-
-        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
-        when(query.setParameter(anyString(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenReturn(1);
-        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
-        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        ContaResponseDTO resultado = contaService.ativar(contaExistente.getId());
-
-        assertThat(resultado).isNotNull();
-        assertThat(resultado.ativa()).isTrue();
-        verify(contaRepository, times(1)).save(contaExistente);
-    }
-
-    @Test
-    @DisplayName("Deve desativar a própria conta com sucesso")
-    void deveDesativarContaComSucesso() {
-        contaExistente.setAtiva(true);
+    @DisplayName("Deve desativar a própria conta com sucesso quando saldo for zero")
+    void deveDesativarMinhaContaComSucesso() {
+        contaExistente.setSaldo(BigDecimal.ZERO);
 
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
@@ -198,13 +186,42 @@ class ContaServiceTest {
         ContaResponseDTO resultado = contaService.desativarMinhaConta();
 
         assertThat(resultado).isNotNull();
-        assertThat(resultado.ativa()).isFalse();
+        assertThat(resultado.status()).isEqualTo(StatusConta.ENCERRADA);
         verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar desativar própria conta com saldo maior que zero")
+    void deveLancarExcecaoAoDesativarMinhaContaComSaldo() {
+        contaExistente.setSaldo(new BigDecimal("150.00"));
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
+                .thenReturn(Optional.of(contaExistente));
+
+        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Você deve transferir o saldo da sua conta antes de desativa-la");
+
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar desativar própria conta com status bloqueado")
+    void deveLancarExcecaoAoDesativarMinhaContaBloqueada() {
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
+
+    @Test
     @DisplayName("Deve lançar exceção ao tentar desativar própria conta inexistente")
-    void deveLancarExcecaoAoDesativarContaInexistente() {
+    void deveLancarExcecaoAoDesativarMinhaContaInexistente() {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.empty());
@@ -217,32 +234,69 @@ class ContaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve ativar a própria conta com sucesso")
-    void deveAtivarContaComSucesso() {
-        contaExistente.setAtiva(false);
-
+    @DisplayName("Admin deve desativar (bloquear) conta por ID com sucesso")
+    void deveDesativarContaComSucessoAdmin() {
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
-                .thenReturn(Optional.of(contaExistente));
+        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ContaResponseDTO resultado = contaService.ativarMinhaConta();
+        ContaResponseDTO resultado = contaService.desativarViaAdmin(contaExistente.getId());
 
         assertThat(resultado).isNotNull();
-        assertThat(resultado.ativa()).isTrue();
+        assertThat(resultado.status()).isEqualTo(StatusConta.BLOQUEADA);
         verify(contaRepository, times(1)).save(contaExistente);
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao tentar ativar própria conta inexistente")
-    void deveLancarExcecaoAoAtivarContaInexistente() {
+    @DisplayName("Admin deve lançar exceção ao desativar conta inexistente por ID")
+    void deveLancarExcecaoAoDesativarContaInexistenteAdmin() {
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
-        when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
-                .thenReturn(Optional.empty());
+        when(contaRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contaService.ativarMinhaConta())
+        assertThatThrownBy(() -> contaService.desativarViaAdmin(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessage("Conta não encontrada");
+                .hasMessage("Conta não encontrada de id 99");
+
+        verify(contaRepository, never()).save(any(Conta.class));
+    }
+
+    @Test
+    @DisplayName("Admin deve ativar conta por ID com sucesso")
+    void deveAtivarContaComSucessoAdmin() {
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ContaResponseDTO resultado = contaService.ativarViaAdmin(contaExistente.getId());
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.status()).isEqualTo(StatusConta.ATIVA);
+        verify(contaRepository, times(1)).save(contaExistente);
+    }
+
+    @Test
+    @DisplayName("Admin deve lançar exceção ao ativar conta inexistente por ID")
+    void deveLancarExcecaoAoAtivarContaInexistenteAdmin() {
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.executeUpdate()).thenReturn(1);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> contaService.ativarViaAdmin(99L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Conta não encontrada de id 99");
 
         verify(contaRepository, never()).save(any(Conta.class));
     }
@@ -250,19 +304,27 @@ class ContaServiceTest {
     @Test
     @DisplayName("Deve alterar limite pix com sucesso")
     void deveAlterarLimitePixComSucesso() {
-
-        // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(contaExistente)).thenReturn(contaExistente);
 
-        // ACT
         ContaResponseDTO resultado = contaService.limite(limiteRequestDTO);
 
-        // ASSERT
         assertThat(resultado).isNotNull();
         assertThat(resultado.limite()).isEqualByComparingTo(limiteRequestDTO.limite());
         verify(contaRepository, times(1)).save(contaExistente);
+    }
 
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar alterar limite com conta bloqueada")
+    void deveLancarExcecaoAoAlterarLimiteComContaBloqueada() {
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        assertThatThrownBy(() -> contaService.limite(limiteRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        verify(contaRepository, never()).save(any(Conta.class));
     }
 }

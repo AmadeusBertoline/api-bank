@@ -1,11 +1,14 @@
 package api.service;
 
+import java.math.BigDecimal;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import api.dto.ContaRequestDTO;
 import api.dto.ContaResponseDTO;
 import api.dto.LimiteRequestDTO;
+import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
@@ -79,10 +82,21 @@ public class ContaService {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        }
+
         Conta conta = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
 
-        conta.setAtiva(false);
+        if (conta.getSaldo().compareTo(BigDecimal.ZERO) > 0) {
+            throw new RegraNegocioException("Você deve transferir o saldo da sua conta antes de desativa-la");
+        }
+
+        conta.setStatus(StatusConta.ENCERRADA);
 
         contaRepository.save(conta);
 
@@ -91,23 +105,7 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaResponseDTO ativarMinhaConta() {
-
-        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
-
-        Conta conta = contaRepository.findByUsuarioEmailWithLock(usuario.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada"));
-
-        conta.setAtiva(true);
-
-        contaRepository.save(conta);
-
-        return toDTO(conta);
-
-    }
-
-    @Transactional
-    public ContaResponseDTO desativar(Long id) {
+    public ContaResponseDTO desativarViaAdmin(Long id) {
 
         Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 
@@ -116,7 +114,7 @@ public class ContaService {
         Conta conta = contaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
 
-        conta.setAtiva(false);
+        conta.setStatus(StatusConta.BLOQUEADA);
 
         Conta salva = contaRepository.save(conta);
 
@@ -125,7 +123,7 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaResponseDTO ativar(Long id) {
+    public ContaResponseDTO ativarViaAdmin(Long id) {
 
         Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 
@@ -134,7 +132,7 @@ public class ContaService {
         Conta conta = contaRepository.findByIdWithLock(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada de id " + id));
 
-        conta.setAtiva(true);
+        conta.setStatus(StatusConta.ATIVA);
 
         Conta salva = contaRepository.save(conta);
 
@@ -145,6 +143,13 @@ public class ContaService {
     public ContaResponseDTO limite(LimiteRequestDTO dto) {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        }
 
         Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -172,7 +177,7 @@ public class ContaService {
     private ContaResponseDTO toDTO(Conta conta) {
         return new ContaResponseDTO(conta.getId(), conta.getUsuario().getNome(),
                 conta.getUsuario().getEmail(), conta.getNumeroConta(), conta.getSaldo(), conta.getTipoConta(),
-                conta.getAtiva(), conta.getDataCriacao(), conta.getLimiteDiario());
+                conta.getStatus(), conta.getDataCriacao(), conta.getLimiteDiario());
 
     }
 }

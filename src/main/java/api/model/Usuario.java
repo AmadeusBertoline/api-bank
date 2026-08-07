@@ -33,6 +33,9 @@ public class Usuario {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private Endereco endereco;
 
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "usuario", cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
+    private Conta conta;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoRole role;

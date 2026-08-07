@@ -3,6 +3,7 @@ package api.service;
 import org.springframework.stereotype.Service;
 import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
+import api.enums.StatusConta;
 import api.exception.RegraNegocioException;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
@@ -26,18 +27,25 @@ public class UsuarioService {
 
     public UsuarioResponseDTO atualizarEmail(UsuarioAtualizaEmailRequestDTO dto) {
 
-        Usuario logado = usuarioAutenticadoService.getUsuarioLogado();
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-        if (!logado.getEmail().equalsIgnoreCase(dto.email())) {
+        if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+            throw new RegraNegocioException(
+                    "Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        }
+
+        if (!usuario.getEmail().equalsIgnoreCase(dto.email())) {
             if (usuarioRepository.existsByEmail(dto.email())) {
                 throw new RegraNegocioException("Esse e-mail já pertence a outro usuário");
             }
 
-            logado.setEmail(dto.email());
+            usuario.setEmail(dto.email());
 
         }
 
-        Usuario salvo = usuarioRepository.save(logado);
+        Usuario salvo = usuarioRepository.save(usuario);
         return toDTO(salvo);
 
     }

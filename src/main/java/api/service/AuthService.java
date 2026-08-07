@@ -4,6 +4,7 @@ import api.dto.ContaRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
+import api.enums.StatusConta;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
 import api.model.Endereco;
@@ -88,6 +89,12 @@ public class AuthService {
     public LoginResponseDTO login(LoginRequestDTO dto) {
         Usuario usuario = usuarioRepository.findByEmail(dto.email())
                 .orElseThrow(() -> new RegraNegocioException("Email ou senha inválidos"));
+        
+        if(usuario.getConta().getStatus().equals(StatusConta.ENCERRADA)){
+
+            throw new RegraNegocioException("Você encerrou sua conta e não pode mais acessar ela");
+
+        }
 
         if (!passwordEncoder.matches(dto.senha(), usuario.getSenha())) {
             throw new RegraNegocioException("Email ou senha inválidos");

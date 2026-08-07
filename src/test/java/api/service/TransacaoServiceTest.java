@@ -34,6 +34,7 @@ import org.springframework.data.domain.Sort;
 import api.dto.PageResponseDTO;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
+import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
@@ -84,19 +85,11 @@ class TransacaoServiceTest {
     private Endereco enderecoDestino;
     private Conta contaDestino;
     private ChavePix chavePixDestino;
-    private TransacaoResponseDTO transacaoResponseDTO;
 
     @BeforeEach
     void setup() {
 
         // CONTA ORIGEM
-
-        chavePixExistente = new ChavePix();
-        chavePixExistente.setId(1L);
-        chavePixExistente.setChave("57561884010");
-        chavePixExistente.setTipo(TipoChavePix.CPF);
-        chavePixExistente.setConta(contaExistente);
-
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
         enderecoExistente.setLogradouro("Avenida Paulista");
@@ -129,11 +122,18 @@ class TransacaoServiceTest {
         contaExistente.setSaldo(new BigDecimal("1000.00"));
         contaExistente.setLimiteDiario(new BigDecimal("1000.00"));
         contaExistente.setTipoConta(TipoConta.PAGAMENTO);
-        contaExistente.setAtiva(true);
+        contaExistente.setStatus(StatusConta.ATIVA);
         contaExistente.setDataCriacao(LocalDateTime.now());
 
-        // CONTA DESTINO
+        usuarioExistente.setConta(contaExistente);
 
+        chavePixExistente = new ChavePix();
+        chavePixExistente.setId(1L);
+        chavePixExistente.setChave("57561884010");
+        chavePixExistente.setTipo(TipoChavePix.CPF);
+        chavePixExistente.setConta(contaExistente);
+
+        // CONTA DESTINO
         enderecoDestino = new Endereco();
         enderecoDestino.setId(2L);
         enderecoDestino.setLogradouro("Avenida Atlântica");
@@ -166,8 +166,10 @@ class TransacaoServiceTest {
         contaDestino.setSaldo(new BigDecimal("500.00"));
         contaDestino.setLimiteDiario(new BigDecimal("1000.00"));
         contaDestino.setTipoConta(TipoConta.PAGAMENTO);
-        contaDestino.setAtiva(true);
+        contaDestino.setStatus(StatusConta.ATIVA);
         contaDestino.setDataCriacao(LocalDateTime.now());
+
+        usuarioDestino.setConta(contaDestino);
 
         chavePixDestino = new ChavePix();
         chavePixDestino.setId(2L);
@@ -179,21 +181,11 @@ class TransacaoServiceTest {
                 "12345678901",
                 new BigDecimal("500.00"),
                 "pix da praia");
-
-        transacaoResponseDTO = new TransacaoResponseDTO(
-                "João Silva",
-                "Maria Oliveira",
-                TipoTransacao.PIX,
-                dto.valor(),
-                dto.descricao(),
-                LocalDateTime.now());
     }
 
     @Test
     @DisplayName("Deve realizar uma transferência Pix com sucesso")
-
     void deveCriarTransacaoPixComSucesso() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
@@ -217,9 +209,24 @@ class TransacaoServiceTest {
     }
 
     @Test
+    @DisplayName("Deve lançar exceção ao tentar realizar Pix com a conta bloqueada no usuário logado")
+    void deveLancarExcecaoQuandoContaEstiverBloqueada() {
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> transacaoService.pix(dto))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessageContaining("Sua conta está bloqueada, você não pode realizar transações");
+
+        verify(contaRepository, never()).findByUsuarioEmail(any());
+        verify(transacaoRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("Deve lançar exceção ao exceder o limite diário de Pix")
     void deveLancarExcecaoLimiteDiarioExcedido() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
@@ -241,7 +248,6 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando o saldo for insuficiente")
     void deveLancarExcecaoSaldoInsuficiente() {
-
         // ARRANGE
         dto = new PixRequestDTO(dto.chavePix(), new BigDecimal("9999.00"), dto.descricao());
         contaExistente.setLimiteDiario(new BigDecimal("20000.00"));
@@ -266,7 +272,6 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao tentar realizar um Pix para a própria conta")
     void deveLancarExcecaoTransferenciaParaSiMesmo() {
-
         // ARRANGE
         dto = new PixRequestDTO("57561884010", dto.valor(), dto.descricao());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
@@ -286,7 +291,6 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção ao realizar um Pix sem usuário autenticado")
     void deveLancarExcecaoTransferenciaSemToken() {
-
         // ARRANGE
         when(usuarioAutenticadoService.getUsuarioLogado())
                 .thenThrow(new ResourceNotFoundException("Usuário inexistente"));
@@ -304,10 +308,8 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando a conta de origem não for encontrada")
     void deveLancarExcecaoContaOrigemNaoEncontrada() {
-
-        usuarioExistente.setEmail("incorreto@gmail.com");
-
         // ARRANGE
+        usuarioExistente.setEmail("incorreto@gmail.com");
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
 
@@ -323,10 +325,8 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando a conta de destino não for encontrada")
     void deveLancarExcecaoContaDestinoNaoEncontrada() {
-
-        dto = new PixRequestDTO("35625605084", dto.valor(), dto.descricao());
-
         // ARRANGE
+        dto = new PixRequestDTO("35625605084", dto.valor(), dto.descricao());
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.empty());
@@ -341,12 +341,30 @@ class TransacaoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando a conta de origem estiver inativa")
-    void deveLancarExcecaoContaOrigemInativa() {
-
-        contaExistente.setAtiva(false);
-
+    @DisplayName("Deve lançar exceção quando a chave pix não for encontrada")
+    void deveLancarExcecaoChavePixNaoEncontrada() {
         // ARRANGE
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.of(contaDestino));
+        when(contaRepository.findByIdWithLock(1L)).thenReturn(Optional.of(contaExistente));
+        when(contaRepository.findByIdWithLock(2L)).thenReturn(Optional.of(contaDestino));
+        when(chavePixRepository.findByChave("12345678901")).thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> transacaoService.pix(dto))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Chave pix não encontrada");
+
+        verify(transacaoRepository, never()).save(any());
+        verify(pixRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando a conta de origem estiver encerrada")
+    void deveLancarExcecaoContaOrigemInativa() {
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.ENCERRADA);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.of(contaDestino));
@@ -364,12 +382,10 @@ class TransacaoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção quando a conta de destino estiver inativa")
+    @DisplayName("Deve lançar exceção quando a conta de destino estiver inativa ou bloqueada")
     void deveLancarExcecaoContaDestinoInativa() {
-
-        contaDestino.setAtiva(false);
-
         // ARRANGE
+        contaDestino.setStatus(StatusConta.BLOQUEADA);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.findByChavesPix(dto.chavePix())).thenReturn(Optional.of(contaDestino));
@@ -389,7 +405,6 @@ class TransacaoServiceTest {
     @Test
     @DisplayName("Deve retornar o extrato paginado da conta com sucesso")
     void listarPorConta_DeveRetornarPageDeDTOs() {
-
         // ARRANGE
         Pageable pageable = PageRequest.of(0, 10, Sort.by("dataCriacao").descending());
         Transacao transacao = new Transacao();
@@ -408,5 +423,4 @@ class TransacaoServiceTest {
         assertEquals(1, resultado.conteudo().size());
         verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
     }
-
 }

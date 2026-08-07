@@ -35,13 +35,6 @@ public class ContaController {
         return ResponseEntity.status(HttpStatus.OK).body(conta);
     }
 
-    @Operation(summary = "Ativar minha conta", description = "Ativa minha conta")
-    @PatchMapping("/ativar")
-    public ResponseEntity<ContaResponseDTO> ativar() {
-        ContaResponseDTO conta = contaService.ativarMinhaConta();
-        return ResponseEntity.status(HttpStatus.OK).body(conta);
-    }
-
     @Operation(summary = "Ajustar limite diário da minha conta", description = "Muda o limite de pix que eu realizo")
     @PatchMapping("/limite")
     public ResponseEntity<ContaResponseDTO> limite(LimiteRequestDTO dto) {

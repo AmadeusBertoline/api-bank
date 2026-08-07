@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import api.dto.PageResponseDTO;
 import api.dto.PixRequestDTO;
 import api.dto.TransacaoResponseDTO;
+import api.enums.StatusConta;
 import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
@@ -55,6 +56,13 @@ public class TransacaoService {
 
                 Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
+                if (usuario.getConta().getStatus().equals(StatusConta.BLOQUEADA)) {
+
+                        throw new RegraNegocioException(
+                                        "Sua conta está bloqueada, você não pode realizar transações nem alterações de chave pix");
+
+                }
+
                 Conta origemTemp = contaRepository.findByUsuarioEmail(usuario.getEmail())
                                 .orElseThrow(
                                                 () -> new ResourceNotFoundException("Conta origem não encontrada de id "
@@ -87,12 +95,14 @@ public class TransacaoService {
                 ChavePix chavePix = chavePixRepository.findByChave(dto.chavePix())
                                 .orElseThrow(() -> new ResourceNotFoundException("Chave pix não encontrada"));
 
-                if (!contaOrigem.getAtiva()) {
+                if (contaOrigem.getStatus() == StatusConta.BLOQUEADA
+                                || contaOrigem.getStatus() == StatusConta.ENCERRADA) {
                         throw new RegraNegocioException(
                                         "Sua conta está inativa, você não pode enviar ou receber transações");
                 }
 
-                if (!contaDestino.getAtiva()) {
+                if (contaDestino.getStatus() == StatusConta.BLOQUEADA
+                                || contaDestino.getStatus() == StatusConta.ENCERRADA) {
                         throw new RegraNegocioException(
                                         "A conta destino está inativa e não pode receber ou enviar transações");
                 }

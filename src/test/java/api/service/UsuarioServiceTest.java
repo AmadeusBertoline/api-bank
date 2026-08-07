@@ -7,8 +7,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,12 +18,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import api.dto.EnderecoResponseDTO;
 import api.dto.UsuarioAtualizaEmailRequestDTO;
 import api.dto.UsuarioResponseDTO;
+import api.enums.StatusConta;
+import api.enums.TipoConta;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
+import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
@@ -43,6 +49,7 @@ class UsuarioServiceTest {
 
     private Endereco enderecoExistente;
     private Usuario usuarioExistente;
+    private Conta contaExistente;
     private EnderecoResponseDTO enderecoResponseDTO;
 
     @BeforeEach
@@ -70,7 +77,13 @@ class UsuarioServiceTest {
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
 
-        // INSTANCIAÇÃO DO RECORD
+        contaExistente = new Conta();
+        contaExistente.setId(1L);
+        contaExistente.setUsuario(usuarioExistente);
+        contaExistente.setStatus(StatusConta.ATIVA);
+        contaExistente.setTipoConta(TipoConta.PAGAMENTO);
+        usuarioExistente.setConta(contaExistente);
+
         enderecoResponseDTO = new EnderecoResponseDTO(1L,
                 "Avenida Paulista",
                 "1000",
@@ -163,7 +176,48 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao atualizar e-mail quando o e-mail já estiver em uso")
+    @DisplayName("Deve permitir atualizar e-mail quando o novo e-mail for idêntico ao atual sem consultar o repositório")
+    void deveAtualizarEmailQuandoEmailForOProprioEmail() {
+
+        // ARRANGE
+        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO("amadeus@email.com");
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(enderecoService.toDTO(enderecoExistente)).thenReturn(enderecoResponseDTO);
+
+        // ACT
+        UsuarioResponseDTO resultado = usuarioService.atualizarEmail(dto);
+
+        // ASSERT
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.email()).isEqualTo("amadeus@email.com");
+
+        verify(usuarioRepository, never()).existsByEmail(any());
+        verify(usuarioRepository, times(1)).save(usuarioExistente);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar e-mail quando a conta estiver bloqueada")
+    void deveLancarExcecaoAoAtualizarEmailQuandoContaEstiverBloqueada() {
+
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        UsuarioAtualizaEmailRequestDTO dto = new UsuarioAtualizaEmailRequestDTO("novo.email@email.com");
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> usuarioService.atualizarEmail(dto))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        verify(usuarioRepository, never()).existsByEmail(any());
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao atualizar e-mail quando o e-mail já estiver em uso por outro usuário")
     void deveLancarExcecaoQuandoEmailJaEstiverEmUso() {
 
         // ARRANGE
@@ -179,5 +233,4 @@ class UsuarioServiceTest {
 
         verify(usuarioRepository, never()).save(any());
     }
-
 }

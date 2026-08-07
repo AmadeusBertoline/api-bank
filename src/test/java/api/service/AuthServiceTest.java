@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,8 +25,11 @@ import api.dto.EnderecoRequestDTO;
 import api.dto.LoginRequestDTO;
 import api.dto.LoginResponseDTO;
 import api.dto.UsuarioRequestDTO;
+import api.enums.StatusConta;
+import api.enums.TipoConta;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
+import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.UsuarioRepository;
@@ -54,6 +58,7 @@ public class AuthServiceTest {
     private LoginRequestDTO loginRequestDTO;
     private Usuario usuarioExistente;
     private Endereco enderecoExistente;
+    private Conta contaExistente;
 
     @BeforeEach
     void setup() {
@@ -95,9 +100,23 @@ public class AuthServiceTest {
         usuarioExistente.setDataNascimento(LocalDate.parse("1998-05-20"));
         usuarioExistente.setRole(TipoRole.ROLE_USUARIO);
         usuarioExistente.setDataCriacao(LocalDateTime.now());
-
+        
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
+
+        contaExistente = new Conta();
+        contaExistente.setId(1L);
+        contaExistente.setUsuario(usuarioExistente);
+        contaExistente.setAgencia("0001");
+        contaExistente.setNumeroConta("0001-1");
+        contaExistente.setDigito("1");
+        contaExistente.setSaldo(new BigDecimal("1000.00"));
+        contaExistente.setTipoConta(TipoConta.PAGAMENTO);
+        contaExistente.setStatus(StatusConta.ATIVA);
+        contaExistente.setDataCriacao(LocalDateTime.now());
+        contaExistente.setLimiteDiario(new BigDecimal("500.00"));
+
+        usuarioExistente.setConta(contaExistente);
 
         loginRequestDTO = new LoginRequestDTO(usuarioExistente.getEmail(), "Senha@123");
 

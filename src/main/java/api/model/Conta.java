@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import api.enums.StatusConta;
 import api.enums.TipoConta;
 
 @Data
@@ -41,7 +42,7 @@ public class Conta {
     private TipoConta tipoConta;
 
     @Column(nullable = false)
-    private Boolean ativa;
+    private StatusConta status;
 
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
@@ -49,10 +50,11 @@ public class Conta {
     @Column
     private BigDecimal limiteDiario;
 
+
     @PrePersist
     public void prePersist() {
         this.dataCriacao = LocalDateTime.now();
-        this.ativa = true;
+        this.status = StatusConta.ATIVA;
         this.limiteDiario = new BigDecimal("500.00");
         if (this.saldo == null) {
             this.saldo = new BigDecimal("10000.00");

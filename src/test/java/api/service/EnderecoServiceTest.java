@@ -7,11 +7,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,11 +18,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import api.dto.EnderecoRequestDTO;
 import api.dto.EnderecoResponseDTO;
+import api.enums.StatusConta;
+import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
+import api.model.Conta;
 import api.model.Endereco;
 import api.model.Usuario;
 import api.repository.EnderecoRepository;
@@ -42,23 +44,23 @@ class EnderecoServiceTest {
 
     private Usuario usuarioExistente;
     private Endereco enderecoExistente;
+    private Conta contaExistente;
     private EnderecoRequestDTO enderecoRequestDTO;
 
     private Usuario usuarioDestino;
     private Endereco enderecoDestino;
+    private Conta contaDestino;
 
     @BeforeEach
     void setup() {
-        // Instanciação direta via construtor do Record
         enderecoRequestDTO = new EnderecoRequestDTO(
-            "Avenida Paulista",
-            "1000",
-            "Apto 42",
-            "Bela Vista",
-            "São Paulo",
-            "SP",
-            "01310-100"
-        );
+                "Avenida Paulista",
+                "1000",
+                "Apto 42",
+                "Bela Vista",
+                "São Paulo",
+                "SP",
+                "01310-100");
 
         enderecoExistente = new Endereco();
         enderecoExistente.setId(1L);
@@ -83,6 +85,19 @@ class EnderecoServiceTest {
         usuarioExistente.setEndereco(enderecoExistente);
         enderecoExistente.setUsuario(usuarioExistente);
 
+        contaExistente = new Conta();
+        contaExistente.setId(1L);
+        contaExistente.setUsuario(usuarioExistente);
+        contaExistente.setAgencia("0001");
+        contaExistente.setNumeroConta("0001-1");
+        contaExistente.setDigito("1");
+        contaExistente.setSaldo(new BigDecimal("1000.00"));
+        contaExistente.setTipoConta(TipoConta.PAGAMENTO);
+        contaExistente.setStatus(StatusConta.ATIVA);
+        contaExistente.setDataCriacao(LocalDateTime.now());
+
+        usuarioExistente.setConta(contaExistente);
+
         enderecoDestino = new Endereco();
         enderecoDestino.setId(2L);
         enderecoDestino.setLogradouro("Avenida Atlântica");
@@ -105,6 +120,13 @@ class EnderecoServiceTest {
 
         usuarioDestino.setEndereco(enderecoDestino);
         enderecoDestino.setUsuario(usuarioDestino);
+
+        contaDestino = new Conta();
+        contaDestino.setId(2L);
+        contaDestino.setUsuario(usuarioDestino);
+        contaDestino.setStatus(StatusConta.ATIVA);
+
+        usuarioDestino.setConta(contaDestino);
     }
 
     @Test
@@ -124,6 +146,21 @@ class EnderecoServiceTest {
         assertThat(resultado.id()).isEqualTo(enderecoExistente.getId());
 
         verify(enderecoRepository, times(1)).save(any(Endereco.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar atualizar endereço com conta bloqueada")
+    void deveLancarExcecaoAoAtualizarEnderecoComContaBloqueada() {
+        // ARRANGE
+        contaExistente.setStatus(StatusConta.BLOQUEADA);
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações");
+
+        verify(enderecoRepository, never()).save(any());
     }
 
     @Test
@@ -152,6 +189,22 @@ class EnderecoServiceTest {
         assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Endereço não encontrado de id " + usuarioExistente.getEndereco().getId());
+
+        verify(enderecoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar atualizar endereço de outro usuário")
+    void deveLancarExcecaoAoTentarAtualizarEnderecoDeOutroUsuario() {
+        // ARRANGE
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(enderecoRepository.findById(usuarioExistente.getEndereco().getId()))
+                .thenReturn(Optional.of(enderecoDestino));
+
+        // ACT + ASSERT
+        assertThatThrownBy(() -> enderecoService.atualizar(enderecoRequestDTO))
+                .isInstanceOf(RegraNegocioException.class)
+                .hasMessage("Um usuário só pode alterar o próprio endereço");
 
         verify(enderecoRepository, never()).save(any());
     }
