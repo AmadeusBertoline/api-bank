@@ -41,6 +41,9 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/registrar").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/chaves/**").hasAuthority("ROLE_USUARIO")
+                        .requestMatchers("/contas/**").hasAuthority("ROLE_USUARIO")
+                        .requestMatchers("/transacoes/**").hasAuthority("ROLE_USUARIO")
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
 
