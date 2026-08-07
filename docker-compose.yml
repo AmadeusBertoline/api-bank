@@ -44,3 +44,5 @@ services:
 # Persistência de dados do MySQL no seu HD
 volumes:
   mysql_data:
+
+#Mudança para o railway fazer redeploy
