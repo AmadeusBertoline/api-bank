@@ -47,7 +47,7 @@ public class Conta {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
-    @Column
+    @Column(nullable = false)
     private BigDecimal limiteDiario;
 
 
