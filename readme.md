@@ -5,7 +5,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![JWT](https://img.shields.io/badge/Auth-JWT-black?logo=jsonwebtokens)
-![Tests](https://img.shields.io/badge/tests-45%20passing-success)
+![Tests](https://img.shields.io/badge/tests-58%20passing-success)
 
 API REST que simula um banco digital com transferências via **Pix**, desenvolvida em Java 21 e Spring Boot 3. O projeto reproduz, em escala reduzida, problemas reais de sistemas financeiros: concorrência em transações simultâneas, controle de limites, cache de leitura e autenticação stateless — não apenas o CRUD básico de conta/transação.
 
@@ -29,7 +29,8 @@ Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e 
 - Transferências Pix atômicas, com trava pessimista e ordenação de locks para evitar deadlock em transações concorrentes
 - Limite diário de Pix configurável por conta, validado somando o total já transferido no dia
 - Extrato de transações paginado, com cache em Redis (TTL de 10 min) e invalidação automática a cada novo Pix
-- Ativação/desativação de conta (pelo próprio usuário ou por um admin)
+- Encerramento de conta pelo próprio usuário — definitivo, só permitido com saldo zerado
+- Bloqueio/desbloqueio de conta por um admin — para investigação, sem apagar o histórico nem impedir a consulta
 - Painel administrativo: listagem paginada de todas as contas e gestão de status
 - Validação de entrada com anotações customizadas (CPF com dígito verificador, idade mínima, força de senha, formato de endereço, etc.)
 - Tratamento de erros centralizado com respostas padronizadas por tipo de exceção
@@ -134,7 +135,7 @@ No Swagger UI, clique em **Authorize** e cole o token.
 | Perfil | Acesso |
 |---|---|
 | `ROLE_USUARIO` | Gerencia a própria conta, chaves Pix e transações |
-| `ROLE_ADMIN` | Acesso a `/admin/**`: ativa/desativa qualquer conta e lista todas as contas do sistema |
+| `ROLE_ADMIN` | Acesso a `/admin/**`: bloqueia/desbloqueia qualquer conta e lista todas as contas do sistema |
 
 ### Criando o primeiro admin
 
@@ -218,8 +219,8 @@ POST /auth/login
 | Método | Endpoint | Descrição |
 |---|---|---|
 | POST | `/admin/registrar` | Um admin registra outro admin |
-| PATCH | `/admin/ativar-conta/{id}` | Ativa a conta de qualquer usuário |
-| PATCH | `/admin/desativar-conta/{id}` | Desativa a conta de qualquer usuário |
+| PATCH | `/admin/bloquear-conta/{id}` | Bloqueia a conta de qualquer usuário (nome da rota mantido por compatibilidade; a ação é bloquear) |
+| PATCH | `/admin/desbloquear-conta/{id}` | Desbloqueia a conta de qualquer usuário |
 | GET | `/admin/listar-contas` | Lista todas as contas do sistema (paginado) |
 
 ### Usuários — `/usuarios` (autenticado)
@@ -233,8 +234,7 @@ POST /auth/login
 | Método | Endpoint | Descrição |
 |---|---|---|
 | GET | `/contas/me` | Dados da conta do usuário logado |
-| PATCH | `/contas/ativar` | Ativa a própria conta |
-| PATCH | `/contas/desativar` | Desativa a própria conta |
+| PATCH | `/contas/encerrar` | Encerra a própria conta — permanente, exige saldo zerado |
 | PATCH | `/contas/limite` | Ajusta o limite diário de Pix |
 
 ### Chaves Pix — `/chaves` (autenticado)
@@ -250,10 +250,18 @@ POST /auth/login
 | POST | `/transacoes` | Realiza uma transferência Pix |
 | GET | `/transacoes/extrato` | Extrato paginado da conta (cache de 10 min) |
 
+## Status da conta
+
+Toda conta tem um dos três status abaixo (`StatusConta`):
+
+- **`ATIVA`** — status padrão, criado junto com a conta. Acesso completo.
+- **`BLOQUEADA`** — definida por um admin (`PATCH /admin/desativar-conta/{id}`), tipicamente para investigação. A conta continua podendo ser **consultada** normalmente, mas nenhuma **alteração** é permitida: Pix (enviar ou receber), cadastro/exclusão de chave Pix, troca de e-mail ou endereço, ajuste de limite diário e até o encerramento pelo próprio usuário ficam bloqueados. Só um admin reverte, desbloqueando a conta (`PATCH /admin/ativar-conta/{id}`).
+- **`ENCERRADA`** — definida pelo próprio usuário (`PATCH /contas/desativar`), só permitida com o saldo zerado (o saldo não é zerado automaticamente — é preciso transferir tudo antes de encerrar). É permanente: não existe rota para reabrir uma conta encerrada, e ela não pode mais enviar nem receber Pix.
+
 ## Regras de negócio
 
 - Conta de origem e destino não podem ser a mesma
-- Contas inativas não enviam nem recebem transações
+- Contas bloqueadas ou encerradas não enviam nem recebem Pix
 - Transferência bloqueada se ultrapassar o limite diário (soma do que já foi enviado no dia)
 - Transferência bloqueada se o saldo for insuficiente
 - Débito e crédito ocorrem na mesma transação (`@Transactional`) — ou os dois acontecem, ou nenhum
@@ -267,7 +275,7 @@ POST /auth/login
 ./mvnw test
 ```
 
-45 testes unitários com JUnit 5 + Mockito, cobrindo `AuthService`, `ContaService`, `ChavePixService`, `TransacaoService`, `EnderecoService` e `UsuarioService` — incluindo cenários de sucesso, violação de regra de negócio e erro de validação.
+58 testes unitários com JUnit 5 + Mockito, cobrindo `AuthService`, `ContaService`, `ChavePixService`, `TransacaoService`, `EnderecoService` e `UsuarioService` — incluindo cenários de sucesso, violação de regra de negócio e erro de validação.
 
 ## Autor
 

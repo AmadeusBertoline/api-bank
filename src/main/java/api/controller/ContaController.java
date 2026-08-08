@@ -28,10 +28,10 @@ public class ContaController {
         return ResponseEntity.ok(conta);
     }
 
-    @Operation(summary = "Desativar minha conta", description = "Desativa minha conta")
-    @PatchMapping("/desativar")
-    public ResponseEntity<ContaResponseDTO> desativar() {
-        ContaResponseDTO conta = contaService.desativarMinhaConta();
+    @Operation(summary = "Encerrar minha conta", description = "Encerra minha conta")
+    @PatchMapping("/encerrar")
+    public ResponseEntity<ContaResponseDTO> encerrar() {
+        ContaResponseDTO conta = contaService.encerrar();
         return ResponseEntity.status(HttpStatus.OK).body(conta);
     }
 

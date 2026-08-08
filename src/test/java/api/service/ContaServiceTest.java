@@ -183,7 +183,7 @@ class ContaServiceTest {
                 .thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ContaResponseDTO resultado = contaService.desativarMinhaConta();
+        ContaResponseDTO resultado = contaService.encerrar();
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.status()).isEqualTo(StatusConta.ENCERRADA);
@@ -199,7 +199,7 @@ class ContaServiceTest {
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.of(contaExistente));
 
-        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+        assertThatThrownBy(() -> contaService.encerrar())
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Você deve transferir o saldo da sua conta antes de desativa-la");
 
@@ -212,7 +212,7 @@ class ContaServiceTest {
         contaExistente.setStatus(StatusConta.BLOQUEADA);
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
 
-        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+        assertThatThrownBy(() -> contaService.encerrar())
                 .isInstanceOf(RegraNegocioException.class)
                 .hasMessage("Sua conta está bloqueada, você não pode realizar transações nem alterações");
 
@@ -226,7 +226,7 @@ class ContaServiceTest {
         when(contaRepository.findByUsuarioEmailWithLock(usuarioExistente.getEmail()))
                 .thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contaService.desativarMinhaConta())
+        assertThatThrownBy(() -> contaService.encerrar())
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Conta não encontrada");
 

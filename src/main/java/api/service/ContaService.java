@@ -78,7 +78,7 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaResponseDTO desativarMinhaConta() {
+    public ContaResponseDTO encerrar() {
 
         Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
