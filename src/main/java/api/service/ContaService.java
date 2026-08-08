@@ -105,7 +105,7 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaResponseDTO desativarViaAdmin(Long id) {
+    public ContaResponseDTO bloquear(Long id) {
 
         Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 
@@ -123,7 +123,7 @@ public class ContaService {
     }
 
     @Transactional
-    public ContaResponseDTO ativarViaAdmin(Long id) {
+    public ContaResponseDTO desbloquear(Long id) {
 
         Usuario admin = usuarioAutenticadoService.getUsuarioLogado();
 

@@ -42,21 +42,21 @@ public class AdminController {
         return ResponseEntity.ok(authService.registrarUsuario(dto, TipoRole.ROLE_ADMIN));
     }
 
-    @Operation(summary = "Desativar conta", description = "Um admin ativa uma conta")
+    @Operation(summary = "Bloquear conta", description = "Um admin bloqueia uma conta")
     @PatchMapping("/desativar-conta/{id}")
-    public ResponseEntity<ContaResponseDTO> desativar(@PathVariable Long id) {
+    public ResponseEntity<ContaResponseDTO> bloquear(@PathVariable Long id) {
 
-        ContaResponseDTO conta = contaService.desativarViaAdmin(id);
+        ContaResponseDTO conta = contaService.bloquear(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(conta);
 
     }
 
-    @Operation(summary = "Ativar conta", description = "Um admin desativa uma conta")
+    @Operation(summary = "Desbloquear conta", description = "Um admin desbloqueia uma conta")
     @PatchMapping("/ativar-conta/{id}")
-    public ResponseEntity<ContaResponseDTO> ativar(@PathVariable Long id) {
+    public ResponseEntity<ContaResponseDTO> desbloquear(@PathVariable Long id) {
 
-        ContaResponseDTO conta = contaService.ativarViaAdmin(id);
+        ContaResponseDTO conta = contaService.desbloquear(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(conta);
 
