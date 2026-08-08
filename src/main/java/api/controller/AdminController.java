@@ -43,7 +43,7 @@ public class AdminController {
     }
 
     @Operation(summary = "Bloquear conta", description = "Um admin bloqueia uma conta")
-    @PatchMapping("/desativar-conta/{id}")
+    @PatchMapping("/bloquear-conta/{id}")
     public ResponseEntity<ContaResponseDTO> bloquear(@PathVariable Long id) {
 
         ContaResponseDTO conta = contaService.bloquear(id);
@@ -53,7 +53,7 @@ public class AdminController {
     }
 
     @Operation(summary = "Desbloquear conta", description = "Um admin desbloqueia uma conta")
-    @PatchMapping("/ativar-conta/{id}")
+    @PatchMapping("/desbloquear-conta/{id}")
     public ResponseEntity<ContaResponseDTO> desbloquear(@PathVariable Long id) {
 
         ContaResponseDTO conta = contaService.desbloquear(id);

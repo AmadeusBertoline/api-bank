@@ -243,7 +243,7 @@ class ContaServiceTest {
         when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ContaResponseDTO resultado = contaService.desativarViaAdmin(contaExistente.getId());
+        ContaResponseDTO resultado = contaService.bloquear(contaExistente.getId());
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.status()).isEqualTo(StatusConta.BLOQUEADA);
@@ -259,7 +259,7 @@ class ContaServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contaService.desativarViaAdmin(99L))
+        assertThatThrownBy(() -> contaService.bloquear(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Conta não encontrada de id 99");
 
@@ -278,7 +278,7 @@ class ContaServiceTest {
         when(contaRepository.findByIdWithLock(contaExistente.getId())).thenReturn(Optional.of(contaExistente));
         when(contaRepository.save(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ContaResponseDTO resultado = contaService.ativarViaAdmin(contaExistente.getId());
+        ContaResponseDTO resultado = contaService.desbloquear(contaExistente.getId());
 
         assertThat(resultado).isNotNull();
         assertThat(resultado.status()).isEqualTo(StatusConta.ATIVA);
@@ -294,7 +294,7 @@ class ContaServiceTest {
         when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
         when(contaRepository.findByIdWithLock(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> contaService.ativarViaAdmin(99L))
+        assertThatThrownBy(() -> contaService.desbloquear(99L))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Conta não encontrada de id 99");
 
