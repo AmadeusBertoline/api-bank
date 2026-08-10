@@ -169,7 +169,6 @@ public class TransacaoService {
 
                 Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
 
-                // 2. Busca a conta vinculada ao e-mail do usuário
                 Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Conta não encontrada para o usuário autenticado"));
