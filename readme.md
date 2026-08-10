@@ -118,10 +118,12 @@ Nenhuma delas tem valor padrão versionado no código. Use o `.env.example` como
 | Variável | Usada em | Descrição |
 |---|---|---|
 | `JWT_SECRET` | Local, Docker, Produção | Chave usada para assinar e validar os tokens JWT |
+| `JWT_EXPIRATION` | Produção (opcional) | Validade do token em milissegundos — padrão `86400000` (24h) se omitida |
 | `MYSQL_ROOT_PASSWORD` | Docker Compose | Senha do usuário root do MySQL do container |
-| `DATABASE_URL` | Produção (Railway) | URL JDBC completa do banco |
-| `DATABASE_USERNAME` | Produção (Railway) | Usuário do banco |
-| `DATABASE_PASSWORD` | Produção (Railway) | Senha do banco |
+| `SPRING_DATASOURCE_URL` | Produção (Railway) | Host/porta/schema do banco — **sem** o prefixo `jdbc:`, ele é concatenado automaticamente (`jdbc:${SPRING_DATASOURCE_URL}`). Ex.: `mysql://host:3306/railway` |
+| `SPRING_DATASOURCE_USERNAME` | Produção (Railway) | Usuário do banco |
+| `SPRING_DATASOURCE_PASSWORD` | Produção (Railway) | Senha do banco |
+| `PORT` | Produção (opcional) | Porta em que a aplicação sobe — padrão `8080`; normalmente já é definida automaticamente pela plataforma de deploy |
 
 ## Autenticação
 
