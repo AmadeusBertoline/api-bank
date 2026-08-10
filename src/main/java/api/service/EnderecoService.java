@@ -1,8 +1,9 @@
 package api.service;
 
 import org.springframework.stereotype.Service;
-import api.dto.EnderecoRequestDTO;
-import api.dto.EnderecoResponseDTO;
+
+import api.dto.endereco.EnderecoRequestDTO;
+import api.dto.endereco.EnderecoResponseDTO;
 import api.enums.StatusConta;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;

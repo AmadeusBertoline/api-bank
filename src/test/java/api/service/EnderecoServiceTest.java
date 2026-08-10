@@ -18,8 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import api.dto.EnderecoRequestDTO;
-import api.dto.EnderecoResponseDTO;
+
+import api.dto.endereco.EnderecoRequestDTO;
+import api.dto.endereco.EnderecoResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.enums.TipoRole;

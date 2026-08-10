@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import api.dto.EnderecoRequestDTO;
-import api.dto.EnderecoResponseDTO;
-import api.dto.UsuarioAtualizaEmailRequestDTO;
-import api.dto.UsuarioResponseDTO;
+
+import api.dto.endereco.EnderecoRequestDTO;
+import api.dto.endereco.EnderecoResponseDTO;
+import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioResponseDTO;
 import api.service.EnderecoService;
 import api.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;

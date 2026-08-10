@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.chavePix;
 
 import api.validation.ChavePixValida;
 import jakarta.validation.constraints.NotBlank;

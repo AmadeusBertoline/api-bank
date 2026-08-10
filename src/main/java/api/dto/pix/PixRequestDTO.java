@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.pix;
 
 import java.math.BigDecimal;
 import api.validation.ChavePixValida;

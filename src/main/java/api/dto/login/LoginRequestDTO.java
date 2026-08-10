@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.login;
 
 import api.validation.EmailValido;
 import api.validation.SenhaValida;

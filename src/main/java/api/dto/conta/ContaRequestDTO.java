@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.conta;
 
 import api.model.Usuario;
 import jakarta.validation.constraints.NotNull;

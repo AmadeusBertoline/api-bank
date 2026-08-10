@@ -1,7 +1,9 @@
-package api.dto;
+package api.dto.usuario;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import api.dto.endereco.EnderecoResponseDTO;
 import api.enums.TipoRole;
 
 public record UsuarioResponseDTO(

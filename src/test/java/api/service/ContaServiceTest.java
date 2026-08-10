@@ -29,9 +29,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import api.dto.ContaRequestDTO;
-import api.dto.ContaResponseDTO;
-import api.dto.LimiteRequestDTO;
+import api.dto.conta.ContaRequestDTO;
+import api.dto.conta.ContaResponseDTO;
+import api.dto.limite.LimiteRequestDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.enums.TipoRole;

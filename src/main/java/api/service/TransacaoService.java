@@ -8,9 +8,10 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import api.dto.PageResponseDTO;
-import api.dto.PixRequestDTO;
-import api.dto.TransacaoResponseDTO;
+
+import api.dto.page.PageResponseDTO;
+import api.dto.pix.PixRequestDTO;
+import api.dto.transacao.TransacaoResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;

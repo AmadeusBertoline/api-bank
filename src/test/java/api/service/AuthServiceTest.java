@@ -21,10 +21,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import api.dto.EnderecoRequestDTO;
-import api.dto.LoginRequestDTO;
-import api.dto.LoginResponseDTO;
-import api.dto.UsuarioRequestDTO;
+import api.dto.endereco.EnderecoRequestDTO;
+import api.dto.login.LoginRequestDTO;
+import api.dto.login.LoginResponseDTO;
+import api.dto.usuario.UsuarioRequestDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.enums.TipoRole;

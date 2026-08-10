@@ -1,9 +1,9 @@
 package api.service;
 
-import api.dto.ContaRequestDTO;
-import api.dto.LoginRequestDTO;
-import api.dto.LoginResponseDTO;
-import api.dto.UsuarioRequestDTO;
+import api.dto.conta.ContaRequestDTO;
+import api.dto.login.LoginRequestDTO;
+import api.dto.login.LoginResponseDTO;
+import api.dto.usuario.UsuarioRequestDTO;
 import api.enums.StatusConta;
 import api.enums.TipoRole;
 import api.exception.RegraNegocioException;
@@ -12,7 +12,6 @@ import api.model.Usuario;
 import api.repository.UsuarioRepository;
 import api.security.JwtService;
 import jakarta.transaction.Transactional;
-
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

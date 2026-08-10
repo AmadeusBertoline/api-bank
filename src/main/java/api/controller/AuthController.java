@@ -1,8 +1,8 @@
 package api.controller;
 
-import api.dto.LoginRequestDTO;
-import api.dto.LoginResponseDTO;
-import api.dto.UsuarioRequestDTO;
+import api.dto.login.LoginRequestDTO;
+import api.dto.login.LoginResponseDTO;
+import api.dto.usuario.UsuarioRequestDTO;
 import api.enums.TipoRole;
 import api.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;

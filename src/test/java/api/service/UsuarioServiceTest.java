@@ -19,9 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import api.dto.EnderecoResponseDTO;
-import api.dto.UsuarioAtualizaEmailRequestDTO;
-import api.dto.UsuarioResponseDTO;
+import api.dto.endereco.EnderecoResponseDTO;
+import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.enums.TipoRole;

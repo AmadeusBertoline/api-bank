@@ -7,8 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import api.dto.ContaResponseDTO;
-import api.dto.LimiteRequestDTO;
+
+import api.dto.conta.ContaResponseDTO;
+import api.dto.limite.LimiteRequestDTO;
 import api.service.ContaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

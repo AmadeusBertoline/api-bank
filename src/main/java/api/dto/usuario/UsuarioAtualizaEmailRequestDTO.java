@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.usuario;
 
 import api.validation.EmailValido;
 

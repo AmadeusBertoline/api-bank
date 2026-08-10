@@ -3,8 +3,9 @@ package api.service;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import api.dto.ChavePixRequestDTO;
-import api.dto.ChavePixResponseDTO;
+
+import api.dto.chavePix.ChavePixRequestDTO;
+import api.dto.chavePix.ChavePixResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.exception.RegraNegocioException;

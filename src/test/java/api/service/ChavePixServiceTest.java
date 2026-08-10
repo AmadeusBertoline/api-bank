@@ -22,8 +22,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import api.dto.ChavePixRequestDTO;
-import api.dto.ChavePixResponseDTO;
+import api.dto.chavePix.ChavePixRequestDTO;
+import api.dto.chavePix.ChavePixResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;

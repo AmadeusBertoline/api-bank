@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.endereco;
 
 import api.validation.BairroValido;
 import api.validation.CepValido;

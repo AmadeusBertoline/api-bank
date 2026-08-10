@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.conta;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

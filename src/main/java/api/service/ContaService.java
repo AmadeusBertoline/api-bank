@@ -5,9 +5,10 @@ import java.math.BigDecimal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import api.dto.ContaRequestDTO;
-import api.dto.ContaResponseDTO;
-import api.dto.LimiteRequestDTO;
+
+import api.dto.conta.ContaRequestDTO;
+import api.dto.conta.ContaResponseDTO;
+import api.dto.limite.LimiteRequestDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
 import api.exception.RegraNegocioException;

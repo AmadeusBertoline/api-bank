@@ -28,9 +28,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import api.dto.PageResponseDTO;
-import api.dto.PixRequestDTO;
-import api.dto.TransacaoResponseDTO;
+
+import api.dto.page.PageResponseDTO;
+import api.dto.pix.PixRequestDTO;
+import api.dto.transacao.TransacaoResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;

@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.page;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.limite;
 
 import java.math.BigDecimal;
 

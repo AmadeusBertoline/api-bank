@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import api.dto.PageResponseDTO;
-import api.dto.PixRequestDTO;
-import api.dto.TransacaoResponseDTO;
+
+import api.dto.page.PageResponseDTO;
+import api.dto.pix.PixRequestDTO;
+import api.dto.transacao.TransacaoResponseDTO;
 import api.service.TransacaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,8 +1,9 @@
 package api.service;
 
 import org.springframework.stereotype.Service;
-import api.dto.UsuarioAtualizaEmailRequestDTO;
-import api.dto.UsuarioResponseDTO;
+
+import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioResponseDTO;
 import api.enums.StatusConta;
 import api.exception.RegraNegocioException;
 import api.model.Usuario;

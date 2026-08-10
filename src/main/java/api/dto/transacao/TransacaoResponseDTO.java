@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.transacao;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

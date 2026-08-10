@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.endereco;
 
 public record EnderecoResponseDTO(
     Long id,

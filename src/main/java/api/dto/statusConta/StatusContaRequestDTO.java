@@ -1,4 +1,4 @@
-package api.dto;
+package api.dto.statusConta;
 
 import api.validation.StatusAtivoValido;
 

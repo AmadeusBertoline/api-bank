@@ -1,6 +1,8 @@
-package api.dto;
+package api.dto.usuario;
 
 import java.time.LocalDate;
+
+import api.dto.endereco.EnderecoRequestDTO;
 import api.validation.CpfValido;
 import api.validation.EmailValido;
 import api.validation.EnderecoValido;
