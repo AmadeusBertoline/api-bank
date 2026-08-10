@@ -35,7 +35,7 @@ Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e 
 - Validação de entrada com anotações customizadas (CPF com dígito verificador, idade mínima, força de senha, formato de endereço, etc.)
 - Tratamento de erros centralizado com respostas padronizadas por tipo de exceção
 - Documentação interativa via Swagger UI
-- 45 testes unitários (JUnit 5 + Mockito) cobrindo services e regras de negócio
+- 58 testes unitários (JUnit 5 + Mockito) cobrindo services e regras de negócio
 
 ## Tecnologias
 
@@ -255,7 +255,7 @@ POST /auth/login
 Toda conta tem um dos três status abaixo (`StatusConta`):
 
 - **`ATIVA`** — status padrão, criado junto com a conta. Acesso completo.
-- **`BLOQUEADA`** — definida por um admin (`PATCH /admin/desativar-conta/{id}`), tipicamente para investigação. A conta continua podendo ser **consultada** normalmente, mas nenhuma **alteração** é permitida: Pix (enviar ou receber), cadastro/exclusão de chave Pix, troca de e-mail ou endereço, ajuste de limite diário e até o encerramento pelo próprio usuário ficam bloqueados. Só um admin reverte, desbloqueando a conta (`PATCH /admin/ativar-conta/{id}`).
+- **`BLOQUEADA`** — definida por um admin (`PATCH /admin/bloquear-conta/{id}`), tipicamente para investigação. A conta continua podendo ser **consultada** normalmente, mas nenhuma **alteração** é permitida: Pix (enviar ou receber), cadastro/exclusão de chave Pix, troca de e-mail ou endereço, ajuste de limite diário e até o encerramento pelo próprio usuário ficam bloqueados. Só um admin reverte, desbloqueando a conta (`PATCH /admin/desbloquear-conta/{id}`).
 - **`ENCERRADA`** — definida pelo próprio usuário (`PATCH /contas/desativar`), só permitida com o saldo zerado (o saldo não é zerado automaticamente — é preciso transferir tudo antes de encerrar). É permanente: não existe rota para reabrir uma conta encerrada, e ela não pode mais enviar nem receber Pix.
 
 ## Regras de negócio
