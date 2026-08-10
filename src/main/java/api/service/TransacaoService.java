@@ -1,8 +1,12 @@
 package api.service;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import api.dto.page.PageResponseDTO;
 import api.dto.pix.PixRequestDTO;
+import api.dto.transacao.ArquivoDownloadResponseDTO;
+import api.dto.transacao.ArquivoDownloadRequestDTO;
 import api.dto.transacao.TransacaoResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoTransacao;
@@ -156,6 +162,49 @@ public class TransacaoService {
 
                 return new PageResponseDTO<>(transacaoRepository.encontrarTransacoes(conta.getId(), pageable)
                                 .map(this::toDTO));
+        }
+
+        @Transactional
+        public ArquivoDownloadResponseDTO gerarCsvExtrato(ArquivoDownloadRequestDTO filtro) {
+
+                Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+                // 2. Busca a conta vinculada ao e-mail do usuário
+                Conta conta = contaRepository.findByUsuarioEmail(usuario.getEmail())
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Conta não encontrada para o usuário autenticado"));
+
+
+                LocalDateTime inicio = filtro.dataInicio().atStartOfDay();
+                LocalDateTime fim = filtro.dataFim().atTime(LocalTime.MAX);
+
+                List<TransacaoResponseDTO> transacoes = transacaoRepository.buscarParaExtrato(conta.getId(), inicio,
+                                fim);
+
+                byte[] csvBytes = construirCsv(transacoes);
+                String nomeArquivo = String.format("extrato_%s_%s.csv", filtro.dataInicio(), filtro.dataFim());
+
+                return new ArquivoDownloadResponseDTO(csvBytes, nomeArquivo);
+        }
+
+        private byte[] construirCsv(List<TransacaoResponseDTO> transacoes) {
+                StringBuilder csv = new StringBuilder();
+                csv.append("Origem;Destino;Tipo;Valor;Descrição;Data e Hora\n");
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+
+                for (TransacaoResponseDTO t : transacoes) {
+                        csv.append(t.titularConta() != null ? t.titularConta() : "").append(";")
+                                        .append(t.titularContaDestino() != null ? t.titularContaDestino() : "")
+                                        .append(";")
+                                        .append(t.tipo()).append(";")
+                                        .append(t.valor()).append(";")
+                                        .append(t.descricao() != null ? t.descricao() : "").append(";")
+                                        .append(t.dataHora() != null ? t.dataHora().format(formatter) : "")
+                                        .append("\n");
+                }
+
+                return csv.toString().getBytes(StandardCharsets.UTF_8);
         }
 
         private TransacaoResponseDTO toDTO(Transacao transacao) {

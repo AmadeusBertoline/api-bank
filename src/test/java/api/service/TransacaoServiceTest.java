@@ -4,16 +4,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,14 +35,16 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
 import api.dto.page.PageResponseDTO;
 import api.dto.pix.PixRequestDTO;
+import api.dto.transacao.ArquivoDownloadRequestDTO;
+import api.dto.transacao.ArquivoDownloadResponseDTO;
 import api.dto.transacao.TransacaoResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoChavePix;
 import api.enums.TipoConta;
 import api.enums.TipoRole;
+import api.enums.TipoTransacao;
 import api.exception.RegraNegocioException;
 import api.exception.ResourceNotFoundException;
 import api.model.ChavePix;
@@ -419,5 +428,88 @@ class TransacaoServiceTest {
         assertEquals(1, resultado.totalElementos());
         assertEquals(1, resultado.conteudo().size());
         verify(transacaoRepository, times(1)).encontrarTransacoes(contaExistente.getId(), pageable);
+    }
+
+    @Test
+    @DisplayName("Deve gerar o DTO do arquivo CSV com sucesso quando houver transações no período")
+    void gerarCsvExtrato_DeveRetornarArquivoDownloadDTO_QuandoSucesso() {
+        // ARRANGE
+        LocalDate inicio = LocalDate.of(2026, 8, 1);
+        LocalDate fim = LocalDate.of(2026, 8, 10);
+        ArquivoDownloadRequestDTO filtro = new ArquivoDownloadRequestDTO(inicio, fim);
+
+        TransacaoResponseDTO transacaoDTO = new TransacaoResponseDTO(
+                usuarioExistente.getNome(),
+                "Maria Souza",
+                TipoTransacao.PIX,
+                new BigDecimal("150.00"),
+                "Pagamento de conta",
+                LocalDateTime.of(2026, 8, 5, 14, 30, 0)
+        );
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(transacaoRepository.buscarParaExtrato(
+                eq(contaExistente.getId()),
+                eq(inicio.atStartOfDay()),
+                eq(fim.atTime(LocalTime.MAX))
+        )).thenReturn(List.of(transacaoDTO));
+
+        // ACT
+        ArquivoDownloadResponseDTO resultado = transacaoService.gerarCsvExtrato(filtro);
+
+        // ASSERT
+        assertNotNull(resultado);
+        assertEquals("extrato_2026-08-01_2026-08-10.csv", resultado.nomeArquivo());
+        assertNotNull(resultado.conteudo());
+
+        String csvTexto = new String(resultado.conteudo(), StandardCharsets.UTF_8);
+        assertTrue(csvTexto.contains("Origem;Destino;Tipo;Valor;Descrição;Data e Hora"));
+        assertTrue(csvTexto.contains("Amadeus Bertoline;Maria Souza;PIX;150.00;Pagamento de conta;05/08/2026 14:30:00"));
+
+        verify(usuarioAutenticadoService, times(1)).getUsuarioLogado();
+        verify(contaRepository, times(1)).findByUsuarioEmail(usuarioExistente.getEmail());
+        verify(transacaoRepository, times(1)).buscarParaExtrato(contaExistente.getId(), inicio.atStartOfDay(), fim.atTime(LocalTime.MAX));
+    }
+
+    @Test
+    @DisplayName("Deve gerar CSV apenas com cabeçalho quando a lista de transações for vazia")
+    void gerarCsvExtrato_DeveGerarCsvComApenasCabecalho_QuandoNaoHouverTransacoes() {
+        // ARRANGE
+        LocalDate inicio = LocalDate.of(2026, 8, 1);
+        LocalDate fim = LocalDate.of(2026, 8, 10);
+        ArquivoDownloadRequestDTO filtro = new ArquivoDownloadRequestDTO(inicio, fim);
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.of(contaExistente));
+        when(transacaoRepository.buscarParaExtrato(anyLong(), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(Collections.emptyList());
+
+        // ACT
+        ArquivoDownloadResponseDTO resultado = transacaoService.gerarCsvExtrato(filtro);
+
+        // ASSERT
+        assertNotNull(resultado);
+        String csvTexto = new String(resultado.conteudo(), StandardCharsets.UTF_8);
+        assertEquals("Origem;Destino;Tipo;Valor;Descrição;Data e Hora\n", csvTexto);
+    }
+
+    @Test
+    @DisplayName("Deve lançar IllegalArgumentException quando a conta não for encontrada para o e-mail do usuário logado")
+    void gerarCsvExtrato_DeveLancarExcecao_QuandoContaNaoEncontrada() {
+        // ARRANGE
+        ArquivoDownloadRequestDTO filtro = new ArquivoDownloadRequestDTO(LocalDate.now(), LocalDate.now());
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(contaRepository.findByUsuarioEmail(usuarioExistente.getEmail())).thenReturn(Optional.empty());
+
+        // ACT + ASSERTT
+        IllegalArgumentException excecao = assertThrows(
+                IllegalArgumentException.class,
+                () -> transacaoService.gerarCsvExtrato(filtro)
+        );
+
+        assertEquals("Conta não encontrada para o usuário autenticado", excecao.getMessage());
+        verifyNoInteractions(transacaoRepository);
     }
 }
