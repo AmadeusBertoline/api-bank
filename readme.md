@@ -19,8 +19,6 @@ A API está em produção e pode ser acessada sem configuração local:
 
 ## 🎥 Demonstração
 
-![Demo]<img width="864" height="864" alt="Image" src="https://github.com/user-attachments/assets/9c24ed98-f19a-4f3f-9d62-905b964f19f5" />
-
 [![Assista à demo completa]](https://youtu.be/ftyhAU3ST7s)
 
 ## Sobre o projeto
