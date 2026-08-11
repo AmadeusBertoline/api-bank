@@ -41,7 +41,7 @@ Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e 
 - Validação de entrada com anotações customizadas (CPF com dígito verificador, idade mínima, força de senha, formato de endereço, etc.)
 - Tratamento de erros centralizado com respostas padronizadas por tipo de exceção
 - Documentação interativa via Swagger UI
-- 61 testes unitários (JUnit 5 + Mockito) cobrindo services e regras de negócio
+- 64 testes unitários (JUnit 5 + Mockito) cobrindo services e regras de negócio
 
 ## Tecnologias
 
@@ -238,6 +238,7 @@ POST /auth/login
 | GET | `/usuarios/me` | Dados do usuário logado, incluindo endereço |
 | PATCH | `/usuarios/email/atualizar` | Atualiza o e-mail (login) |
 | PATCH | `/usuarios/endereco/atualizar` | Atualiza o endereço |
+| PATCH | `/usuarios/senha/atualizar` | Atualiza a senha |
 
 ### Contas — `/contas` (autenticado)
 | Método | Endpoint | Descrição |
@@ -300,7 +301,7 @@ Toda conta tem um dos três status abaixo (`StatusConta`):
 ./mvnw test
 ```
 
-61 testes unitários com JUnit 5 + Mockito, cobrindo `AuthService`, `ContaService`, `ChavePixService`, `TransacaoService`, `EnderecoService` e `UsuarioService` — incluindo cenários de sucesso, violação de regra de negócio e erro de validação.
+64 testes unitários com JUnit 5 + Mockito, cobrindo `AuthService`, `ContaService`, `ChavePixService`, `TransacaoService`, `EnderecoService` e `UsuarioService` — incluindo cenários de sucesso, violação de regra de negócio e erro de validação.
 
 ## Autor
 
