@@ -96,6 +96,7 @@ public class AuthService {
         }
 
         if (!passwordEncoder.matches(dto.senha(), usuario.getSenha())) {
+            System.out.println(dto.senha() + usuario.getSenha());
             throw new RegraNegocioException("Email ou senha inválidos");
         }
 

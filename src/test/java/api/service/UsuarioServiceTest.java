@@ -2,7 +2,11 @@ package api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,9 +22,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import api.dto.endereco.EnderecoResponseDTO;
 import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioAtualizaSenhaRequestDTO;
 import api.dto.usuario.UsuarioResponseDTO;
 import api.enums.StatusConta;
 import api.enums.TipoConta;
@@ -43,6 +49,9 @@ class UsuarioServiceTest {
 
     @Mock
     private UsuarioAutenticadoService usuarioAutenticadoService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UsuarioService usuarioService;
@@ -232,5 +241,64 @@ class UsuarioServiceTest {
                 .hasMessage("Esse e-mail já pertence a outro usuário");
 
         verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve atualizar a senha com sucesso quando os dados forem válidos")
+    void atualizarSenha_ComSucesso() {
+        // ARRANGE
+        var dto = new UsuarioAtualizaSenhaRequestDTO("senha123", "novaSenha123", "novaSenha123");
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(passwordEncoder.matches("senha123", usuarioExistente.getSenha())).thenReturn(true);
+        when(passwordEncoder.encode("novaSenha123")).thenReturn("$2a$10$novoHashBcrypt");
+        when(usuarioRepository.save(any(Usuario.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // ACT
+        UsuarioResponseDTO response = usuarioService.atualizarSenha(dto);
+
+        // ASSERT
+        assertNotNull(response);
+        assertEquals("$2a$10$novoHashBcrypt", usuarioExistente.getSenha());
+        verify(passwordEncoder).encode("novaSenha123");
+        verify(usuarioRepository).save(usuarioExistente);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando a senha atual estiver incorreta")
+    void atualizarSenha_SenhaAtualIncorreta() {
+        // ARRANGE
+        var dto = new UsuarioAtualizaSenhaRequestDTO("senhaIncorreta", "novaSenha123", "novaSenha123");
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(passwordEncoder.matches("senhaIncorreta", usuarioExistente.getSenha())).thenReturn(false);
+
+        // ACT + ASSERT
+        RegraNegocioException exception = assertThrows(
+                RegraNegocioException.class,
+                () -> usuarioService.atualizarSenha(dto));
+
+        assertEquals("A senha atual está incorreta", exception.getMessage());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(usuarioRepository, never()).save(any(Usuario.class));
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando a confirmação da nova senha não coincidir")
+    void atualizarSenha_ConfirmacaoSenhaDiferente() {
+        // ARRANGE
+        var dto = new UsuarioAtualizaSenhaRequestDTO("senha123", "novaSenha123", "senhaDiferente");
+
+        when(usuarioAutenticadoService.getUsuarioLogado()).thenReturn(usuarioExistente);
+        when(passwordEncoder.matches("senha123", usuarioExistente.getSenha())).thenReturn(true);
+
+        // ACT + ASSERTT
+        RegraNegocioException exception = assertThrows(
+                RegraNegocioException.class,
+                () -> usuarioService.atualizarSenha(dto));
+
+        assertEquals("A nova senha deve ser igual a confirmação de senha", exception.getMessage());
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(usuarioRepository, never()).save(any(Usuario.class));
     }
 }

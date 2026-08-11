@@ -1,8 +1,10 @@
 package api.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioAtualizaSenhaRequestDTO;
 import api.dto.usuario.UsuarioResponseDTO;
 import api.enums.StatusConta;
 import api.exception.RegraNegocioException;
@@ -15,15 +17,38 @@ public class UsuarioService {
     private final UsuarioAutenticadoService usuarioAutenticadoService;
     private final EnderecoService enderecoService;
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UsuarioService(
             UsuarioAutenticadoService usuarioAutenticadoService,
             EnderecoService enderecoService,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder) {
 
         this.usuarioAutenticadoService = usuarioAutenticadoService;
         this.enderecoService = enderecoService;
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    public UsuarioResponseDTO atualizarSenha(UsuarioAtualizaSenhaRequestDTO dto) {
+
+        Usuario usuario = usuarioAutenticadoService.getUsuarioLogado();
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            throw new RegraNegocioException("A senha atual está incorreta");
+        }
+
+        if(!dto.senhaNova().equals(dto.senhaRepetida())){
+            throw new RegraNegocioException("A nova senha deve ser igual a confirmação de senha");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(dto.senhaNova()));
+
+        Usuario salvo = usuarioRepository.save(usuario);
+
+        return toDTO(salvo);
+
     }
 
     public UsuarioResponseDTO atualizarEmail(UsuarioAtualizaEmailRequestDTO dto) {

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import api.dto.endereco.EnderecoRequestDTO;
 import api.dto.endereco.EnderecoResponseDTO;
 import api.dto.usuario.UsuarioAtualizaEmailRequestDTO;
+import api.dto.usuario.UsuarioAtualizaSenhaRequestDTO;
 import api.dto.usuario.UsuarioResponseDTO;
 import api.service.EnderecoService;
 import api.service.UsuarioService;
@@ -51,6 +52,15 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponseDTO> atualizarEmail(@RequestBody @Valid UsuarioAtualizaEmailRequestDTO dto) {
         UsuarioResponseDTO usuario = usuarioService.atualizarEmail(dto);
         return ResponseEntity.status(HttpStatus.OK).body(usuario);
+    }
+
+    @Operation(summary = "Atualizar minha senha", description = "Atualiza minha senha (login)")
+    @PatchMapping("/senha/atualizar")
+    public ResponseEntity<UsuarioResponseDTO> atualizarSenha(@RequestBody @Valid UsuarioAtualizaSenhaRequestDTO dto) {
+
+        UsuarioResponseDTO usuario = usuarioService.atualizarSenha(dto);
+        return ResponseEntity.status(HttpStatus.OK).body(usuario);
+
     }
 
 }
