@@ -17,6 +17,12 @@ A API está em produção e pode ser acessada sem configuração local:
 
 **Swagger UI:** `https://api-bank-production-7de4.up.railway.app/swagger-ui/index.html`
 
+## 🎥 Demonstração
+
+![Demo]<img width="864" height="864" alt="Image" src="https://github.com/user-attachments/assets/9c24ed98-f19a-4f3f-9d62-905b964f19f5" />
+
+[![Assista à demo completa]](https://youtu.be/ftyhAU3ST7s)
+
 ## Sobre o projeto
 
 Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e pode cadastrar chaves Pix (e-mail, CPF, telefone ou aleatória) para receber transferências. As transferências debitam e creditam duas contas na mesma transação, respeitando saldo, limite diário e status da conta — com proteção contra condições de corrida quando duas transferências acontecem ao mesmo tempo envolvendo a mesma conta.
