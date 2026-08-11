@@ -32,6 +32,7 @@ Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e 
 - Exportação do extrato em CSV, com filtro por período (padrão: últimos 30 dias)
 - Encerramento de conta pelo próprio usuário — definitivo, só permitido com saldo zerado
 - Bloqueio/desbloqueio de conta por um admin — para investigação, sem apagar o histórico nem impedir a consulta
+- Auditoria de alteração de status de conta via **Trigger nativa no MySQL**, registrando histórico de mudanças (`ATIVO`/`BLOQUEADO`/`ENCERRADO`) e o usuário responsável
 - Painel administrativo: listagem paginada de todas as contas e gestão de status
 - Validação de entrada com anotações customizadas (CPF com dígito verificador, idade mínima, força de senha, formato de endereço, etc.)
 - Tratamento de erros centralizado com respostas padronizadas por tipo de exceção
@@ -46,7 +47,7 @@ Cada usuário, ao se registrar, recebe automaticamente uma conta de pagamento e 
 - Spring Security + JWT (`jjwt` 0.12.6)
 - Spring Data Redis (cache)
 - Bean Validation (Jakarta) com validadores customizados
-- MySQL 8
+- MySQL 8 (com Triggers e Migrações via Flyway)
 - Lombok
 - springdoc-openapi / Swagger UI
 - JUnit 5 + Mockito
@@ -74,6 +75,7 @@ Controller → Service → Repository → Banco de Dados
 - **Concorrência em transferências**: ao processar um Pix, as duas contas envolvidas são bloqueadas com `PESSIMISTIC_WRITE`, sempre na mesma ordem (menor ID primeiro), prevenindo deadlock quando duas transferências entre as mesmas contas ocorrem em paralelo.
 - **Cache com Redis**: o extrato e os dados do usuário são cacheados por 10 minutos; qualquer novo Pix invalida o cache de transações do usuário automaticamente (`@CacheEvict`).
 - **Geração de número de conta**: a conta é salva primeiro para obter um ID e só então o número/dígito verificador é calculado a partir dele.
+- **Auditoria desacoplada no banco de dados**: monitoramento de alterações de status de conta executado via `TRIGGER` nativa no MySQL (`trg_log_status_conta`), que grava o histórico de mudanças na tabela `log_status` capturando o usuário responsável através de variável de sessão (`@usuario_logado`), sem poluir a camada de aplicação.
 
 ## Como executar localmente
 
