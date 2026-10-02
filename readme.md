@@ -11,7 +11,7 @@ API REST que simula um banco digital com transferências via **Pix**, desenvolvi
 
 ## 🚀 Deploy
 
-A API está em produção e pode ser acessada sem configuração local:
+(EM PAUSA, TRANSIÇÃO PARA OUTRA PLATAFORMA GRATUITA) A API está em produção e pode ser acessada sem configuração local:
 
 **Base URL:** `https://api-bank-production-7de4.up.railway.app`
 
