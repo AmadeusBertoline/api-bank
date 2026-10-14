@@ -5,7 +5,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springdoc.core.converters.models.PageableAsQueryParam;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,16 +30,17 @@ import jakarta.validation.Valid;
 @Tag(name = "Transações", description = "Operações financeiras: depósito, saque e transferência")
 public class TransacaoController {
 
-    @Autowired
-    private TransacaoService transacaoService;
+    private final TransacaoService transacaoService;
+
+    public TransacaoController(TransacaoService transacaoService) {
+        this.transacaoService = transacaoService;
+    }
 
     @Operation(summary = "Realizar PIX", description = "Realiza um PIX")
     @PostMapping
     public ResponseEntity<TransacaoResponseDTO> pix(@RequestBody @Valid PixRequestDTO dto) {
-
         TransacaoResponseDTO realizada = transacaoService.pix(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(realizada);
-
     }
 
     @PageableAsQueryParam
@@ -48,7 +48,6 @@ public class TransacaoController {
     @GetMapping("/extrato")
     public ResponseEntity<PageResponseDTO<TransacaoResponseDTO>> listarPorConta(
             @Parameter(hidden = true) @PageableDefault(page = 0, size = 10, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable) {
-
         PageResponseDTO<TransacaoResponseDTO> transacoes = transacaoService.extrato(pageable);
         return ResponseEntity.ok(transacoes);
     }

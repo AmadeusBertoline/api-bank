@@ -1,7 +1,6 @@
 package api.controller;
 
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,8 +23,11 @@ import jakarta.validation.Valid;
 @RequestMapping("/chaves")
 public class ChavePixController {
 
-    @Autowired
-    private ChavePixService chavePixService;
+    private final ChavePixService chavePixService;
+
+    public ChavePixController(ChavePixService chavePixService) {
+        this.chavePixService = chavePixService;
+    }
 
     @Operation(summary = "Cadastrar chave pix", description = "Cadastra chave pix de diversos tipos")
     @PostMapping
@@ -44,10 +46,8 @@ public class ChavePixController {
     @Operation(summary = "Deletar uma chave pix", description = "Deleta a chave pix selecionada")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-
         chavePixService.deletar(id);
         return ResponseEntity.noContent().build();
-
     }
 
 }

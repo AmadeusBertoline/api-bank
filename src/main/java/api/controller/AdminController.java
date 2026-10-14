@@ -1,6 +1,5 @@
 package api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,11 +29,13 @@ import jakarta.validation.Valid;
 @Tag(name = "Admin")
 public class AdminController {
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+    private final ContaService contaService;
 
-    @Autowired
-    private ContaService contaService;
+    public AdminController(AuthService authService, ContaService contaService) {
+        this.authService = authService;
+        this.contaService = contaService;
+    }
 
     @Operation(summary = "Registar um novo admin", description = "Um admin registra outro admin")
     @PostMapping("/registrar")
@@ -45,21 +46,15 @@ public class AdminController {
     @Operation(summary = "Bloquear conta", description = "Um admin bloqueia uma conta")
     @PatchMapping("/bloquear-conta/{id}")
     public ResponseEntity<ContaResponseDTO> bloquear(@PathVariable Long id) {
-
         ContaResponseDTO conta = contaService.bloquear(id);
-
         return ResponseEntity.status(HttpStatus.OK).body(conta);
-
     }
 
     @Operation(summary = "Desbloquear conta", description = "Um admin desbloqueia uma conta")
     @PatchMapping("/desbloquear-conta/{id}")
     public ResponseEntity<ContaResponseDTO> desbloquear(@PathVariable Long id) {
-
         ContaResponseDTO conta = contaService.desbloquear(id);
-
         return ResponseEntity.status(HttpStatus.OK).body(conta);
-
     }
 
     @PageableAsQueryParam
