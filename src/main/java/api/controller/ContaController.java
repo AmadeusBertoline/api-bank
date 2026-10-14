@@ -1,6 +1,5 @@
 package api.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,18 +17,21 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/contas")
 @Tag(name = "Contas", description = "Gerenciamento de contas bancárias")
 public class ContaController {
-    @Autowired
-    private ContaService contaService;
+
+    private final ContaService contaService;
+
+    public ContaController(ContaService contaService) {
+        this.contaService = contaService;
+    }
 
     @Operation(summary = "Exibir dados da minha conta corrente", description = "Exibe dados da minha conta corrente")
     @GetMapping("/me")
     public ResponseEntity<ContaResponseDTO> exibirContaCorrente() {
-
         ContaResponseDTO conta = contaService.meusDados();
         return ResponseEntity.ok(conta);
     }
 
-    @Operation(summary = "Encerrar minha conta", description = "Encerra minha conta")
+    @Operation(summary = "Encerra minha conta", description = "Encerra minha conta")
     @PatchMapping("/encerrar")
     public ResponseEntity<ContaResponseDTO> encerrar() {
         ContaResponseDTO conta = contaService.encerrar();
@@ -39,10 +41,8 @@ public class ContaController {
     @Operation(summary = "Ajustar limite diário da minha conta", description = "Muda o limite de pix que eu realizo")
     @PatchMapping("/limite")
     public ResponseEntity<ContaResponseDTO> limite(LimiteRequestDTO dto) {
-
         ContaResponseDTO conta = contaService.limite(dto);
         return ResponseEntity.status(HttpStatus.OK).body(conta);
-
     }
 
 }
