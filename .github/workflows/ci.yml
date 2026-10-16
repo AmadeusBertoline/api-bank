@@ -10,6 +10,17 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # Adicionamos um serviço MySQL rodando no container do GitHub Actions
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: financas_db # Altere para o nome do banco que seu projeto usa, se for diferente
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -24,9 +35,7 @@ jobs:
       - name: Executar testes com Maven
         run: mvn clean test
         env:
-          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-          SPRING_DATASOURCE_USERNAME: sa
-          SPRING_DATASOURCE_PASSWORD: ""
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
-          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
-          SPRING_FLYWAY_ENABLED: false
+          # Sobrescrevemos as credenciais para apontar para o MySQL que acabou de subir no CI
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: root
