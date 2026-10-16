@@ -10,6 +10,14 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    # Definimos as variáveis de ambiente aqui em cima para o Spring Boot capturar direto
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      JWT_SECRET: suaChaveSecretaSuperSeguraParaTestesNoGithubActions123456
+
     services:
       mysql:
         image: mysql:8.0
@@ -32,4 +40,4 @@ jobs:
           cache: 'maven'
 
       - name: Executar testes com Maven
-        run: mvn clean test -Dspring.datasource.url=jdbc:mysql://localhost:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true -Dspring.datasource.username=root -Dspring.datasource.password=123456 -DJWT_SECRET=suaChaveSecretaSuperSeguraParaTestesNoGithubActions123456
+        run: mvn clean test
