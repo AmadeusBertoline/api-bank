@@ -39,11 +39,14 @@ jobs:
           done
           echo "MySQL está pronto e aceitando conexões!"
 
+      - name: Injetar propriedades no profile local para o CI
+        run: |
+          mkdir -p src/test/resources
+          echo "spring.datasource.url=jdbc:mysql://127.0.0.1:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true" >> src/test/resources/application-local.properties
+          echo "spring.datasource.username=root" >> src/test/resources/application-local.properties
+          echo "spring.datasource.password=123456" >> src/test/resources/application-local.properties
+          echo "spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver" >> src/test/resources/application-local.properties
+          echo "jwt.secret=suaChaveSecretaSuperSeguraParaTestesNoGithubActions123456" >> src/test/resources/application-local.properties
+
       - name: Executar testes com Maven
-        env:
-          SPRING_DATASOURCE_URL: "jdbc:mysql://127.0.0.1:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: "123456"
-          JWT_SECRET: "suaChaveSecretaSuperSeguraParaTestesNoGithubActions123456"
-          JWT_EXPIRATION: "86400000"
-        run: mvn -B clean test
+        run: mvn clean test
