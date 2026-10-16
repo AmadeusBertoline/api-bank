@@ -9,7 +9,7 @@
 
 API REST que simula um banco digital com transferências via **Pix**, desenvolvida em Java 21 e Spring Boot 3. O projeto reproduz, em escala reduzida, problemas reais de sistemas financeiros: concorrência em transações simultâneas, controle de limites, cache de leitura e autenticação stateless — não apenas o CRUD básico de conta/transação.
 
-- Pipeline de CI com GitHub Actions: build com Maven e execução dos testes (JUnit 5/Mockito) a cada push e pull request; versionamento com GitFlow.
+- ![CI Pipeline] Pipeline de CI com GitHub Actions: build com Maven e execução dos testes (JUnit 5/Mockito) a cada push e pull request; versionamento com GitFlow.
 
 ## 🚀 Deploy
 
