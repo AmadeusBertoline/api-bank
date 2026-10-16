@@ -1,0 +1,54 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: '123456'
+          MYSQL_DATABASE: 'financas_db'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -p123456"
+          --health-interval=5s
+          --health-start-period=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Aguardar o MySQL estar 100% saudável
+        run: |
+          echo "Aguardando o MySQL inicializar totalmente..."
+          until [ "$(docker inspect --format='{{json .State.Health.Status}}' $(docker ps -q -f name=mysql))" = '"healthy"' ]; do
+            sleep 3
+          done
+          echo "MySQL está 100% pronto e operacional!"
+
+      - name: Executar testes com Maven
+        run: mvn clean test
+        env:
+          SPRING_DATASOURCE_URL: "jdbc:mysql://localhost:3306/financas_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: '123456'
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+          JWT_SECRET: "suaChaveSecretaSuperSeguraParaTestesNoGithubActions123456"
